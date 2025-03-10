@@ -13,7 +13,7 @@ export default function ClientDetails() {
   async function deleteClient() {
     try {
       const response = await axios.delete(
-        `https://REDACTED_SAP_HOST:50000/b1s/v1/BusinessPartners('${id}')`,
+        `https://REDACTED_SAP_HOST:50000/b1s/v2/BusinessPartners('${id}')`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -51,25 +51,30 @@ export default function ClientDetails() {
 
   return (
     <>
-      <div>
-        {client.CardCode !== "" ? (
-          <ul>
-            <li>{client.CardCode}</li>
-            <li>{client.CardName}</li>
-            <li>{client.CardType}</li>
-            <li>
-              <Link to={`/updateClient/${client.CardCode}`}>
+      {client.CardCode !== "" ? (
+        <ul className="w-96 flex flex-col justify-center items-center space-y-1">
+          <li>{client.CardCode}</li>
+          <li>{client.CardName}</li>
+          <li>{client.CardType}</li>
+          <li>
+            <Link to={`/updateClient/${client.CardCode}`}>
+              <button className="border border-blue-500">
                 Update your name
-              </Link>
-            </li>
-            <li>
-              <button onClick={deleteClient}>Delete your account</button>
-            </li>
-          </ul>
-        ) : (
-          <p>The client you want was not found!</p>
-        )}
-      </div>
+              </button>
+            </Link>
+          </li>
+          <li>
+            <button
+              onClick={deleteClient}
+              className="text-rose-500 border-rose-500"
+            >
+              Delete your account
+            </button>
+          </li>
+        </ul>
+      ) : (
+        <p>The client you want was not found!</p>
+      )}
     </>
   );
 }

@@ -1,0 +1,154 @@
+import {
+  Table,
+  TableCell,
+  TableHeaderCell,
+  TableHeaderRow,
+  TableRow,
+} from "@ui5/webcomponents-react";
+import { useEffect, useState } from "react";
+
+export default function Promotions({
+  promotionArticles,
+  setPromotionArticles,
+  selectedPromotionArticles,
+  setSelectedPromotionArticles,
+  promotions,
+}) {
+  const [totalQuantity, setTotalQuantity] = useState(0);
+  const [selectedQuantity, setSelectedQuantity] = useState(0);
+  const [remainingQuantity, setRemainingQuantity] = useState(0);
+
+  useEffect(() => {
+    const total = selectedPromotionArticles.reduce(
+      (acc, cur) => acc + cur.Quantity,
+      0
+    );
+    setSelectedQuantity(total);
+  }, [selectedPromotionArticles]);
+
+  useEffect(() => {
+    setRemainingQuantity(totalQuantity - selectedQuantity);
+  }, [totalQuantity, selectedQuantity]);
+
+  useEffect(() => {
+    if (promotions.length > 0 && promotions[0].U_QtyFree) {
+      setTotalQuantity(promotions[0].U_QtyFree);
+    } else {
+      setTotalQuantity(3);
+    }
+  }, [promotions]);
+
+  function handleQuantityChange(e, selectedItem) {
+    const newValue = Number(e.target.value);
+    const existing = selectedPromotionArticles.find(
+      (x) => x.ItemCode === selectedItem.ItemCode
+    );
+    const oldQty = existing ? existing.Quantity : 0;
+    const currentTotal = selectedPromotionArticles.reduce(
+      (acc, cur) => acc + cur.Quantity,
+      0
+    );
+    const newTotal = currentTotal - oldQty + newValue;
+
+    if (newValue >= 0 && newTotal <= totalQuantity) {
+      const updatedPromotionArticles = promotionArticles.map((x) =>
+        x.ItemCode === selectedItem.ItemCode ? { ...x, Quantity: newValue } : x
+      );
+      setPromotionArticles(updatedPromotionArticles);
+
+      if (newValue > 0) {
+        if (existing) {
+          const updatedSelected = selectedPromotionArticles.map((x) =>
+            x.ItemCode === selectedItem.ItemCode
+              ? { ...x, Quantity: newValue }
+              : x
+          );
+          setSelectedPromotionArticles(updatedSelected);
+        } else {
+          setSelectedPromotionArticles([
+            ...selectedPromotionArticles,
+            { ...selectedItem, Quantity: newValue },
+          ]);
+        }
+      } else {
+        const filteredSelected = selectedPromotionArticles.filter(
+          (x) => x.ItemCode !== selectedItem.ItemCode
+        );
+        setSelectedPromotionArticles(filteredSelected);
+      }
+    }
+  }
+
+  return (
+    <div className="flex flex-col justify-center items-start gap-y-4 w-full h-full">
+      {promotionArticles.length !== 0 ? (
+        <>
+          <h1 className="text-xl font-medium text-slate-700">
+            Remaining Quantity:{" "}
+            <span className="text-emerald-500">{remainingQuantity}</span>
+          </h1>
+          <Table
+            headerRow={
+              <TableHeaderRow sticky className="bg-gray-100 h-11">
+                <TableHeaderCell minWidth="200px">
+                  <span>Item Code</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="200px" width="auto">
+                  <span>Item Name</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="200px">
+                  <span>Family</span>
+                </TableHeaderCell>
+                <TableHeaderCell maxWidth="200px" minWidth="100px">
+                  <span>Quantity</span>
+                </TableHeaderCell>
+              </TableHeaderRow>
+            }
+            className="h-[448px]"
+          >
+            {promotionArticles.map((promotionArticle, index) => {
+              const isPromotionSelected = selectedPromotionArticles.some(
+                (item) => item.ItemCode === promotionArticle.ItemCode
+              );
+              return (
+                <TableRow
+                  key={promotionArticle.ItemCode}
+                  className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
+                    isPromotionSelected && "bg-emerald-100"
+                  } hover:bg-stone-200 transition-colors duration-200`}
+                >
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.ItemCode}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.ItemName}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.U_Family}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    <input
+                      type="number"
+                      min={0}
+                      value={promotionArticle.Quantity}
+                      onChange={(e) =>
+                        handleQuantityChange(e, promotionArticle)
+                      }
+                      className={`${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } w-[65px] px-0.5 py-1 mx-0.5 rounded-sm`}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </Table>
+        </>
+      ) : (
+        <span className="p-4 text-center text-gray-500">
+          Promotion articles table is empty!
+        </span>
+      )}
+    </div>
+  );
+}

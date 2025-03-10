@@ -1,18 +1,17 @@
 import "./App.css";
 import { Link, Route, Routes } from "react-router-dom";
-import Home from "./Home";
+import Clients from "./Clients";
 import ClientDetails from "./ClientDetails";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import axios from "axios";
-import CreateClient from "./CreateClient";
 import UpdateClientName from "./UpdateClientName";
+import AddArticles from "./AddArticles";
+import AddClient from "./AddClient";
 
 function App() {
-  const [clients, setClients] = useState([]);
-
   // Auto Login
   useEffect(() => {
-    async function loginToSAP() {
+    async function loginToSAPv1() {
       try {
         const loginData = {
           CompanyDB: "SBODemo",
@@ -21,7 +20,7 @@ function App() {
         };
 
         const response = await axios.post(
-          "https://REDACTED_SAP_HOST:50000/b1s/v1/Login",
+          "https://REDACTED_SAP_HOST:50000/b1s/v2/Login",
           loginData,
           {
             headers: {
@@ -35,17 +34,24 @@ function App() {
         return response.data;
       } catch (error) {
         console.error(
-          "SAP Login Error:",
+          "SAP Login1 Error:",
           error.response?.data || error.message
         );
         throw new Error("Failed to authenticate with SAP Service Layer");
       }
     }
 
-    async function fetchClients() {
+    async function loginToSAPv2() {
       try {
-        const response = await axios.get(
-          "https://REDACTED_SAP_HOST:50000/b1s/v1/BusinessPartners?$select=CardCode,CardName,CardType",
+        const loginData = {
+          CompanyDB: "REDACTED_COMPANY_DATABASE",
+          UserName: "REDACTED_USERNAME",
+          Password: "REDACTED_CREDENTIAL",
+        };
+
+        const response = await axios.post(
+          "https://REDACTED_SAP_HOST:50000/b1s/v2/Login",
+          loginData,
           {
             headers: {
               "Content-Type": "application/json",
@@ -54,39 +60,45 @@ function App() {
             withCredentials: true,
           }
         );
-        const data = await response.data.value;
 
-        setClients(data);
+        return response.data;
       } catch (error) {
-        console.error(error.message);
+        console.error(
+          "SAP Login2 Error:",
+          error.response?.data || error.message
+        );
+        throw new Error("Failed to authenticate with SAP Service Layer");
       }
     }
 
-    async function initApp() {
-      await loginToSAP();
-      await fetchClients();
-    }
-
-    initApp();
+    loginToSAPv2();
+    loginToSAPv1();
   }, []);
 
   return (
     <>
-      <div className="flex flex-col justify-start items-center w-full">
-        <nav className="w-full h-10 flex justify-center items-center underline bg-zinc-900 space-x-5">
-          <Link to="/">Home</Link>
-          <Link to="/createClient">Create Client</Link>
+      <div className="relative w-full h-screen flex flex-col justify-start items-center">
+        <nav className="sticky top-0 z-50 w-full h-12 flex justify-center items-center underline from-emerald-300 to-sky-400 bg-gradient-to-r space-x-6">
+          <Link to="/clients" className="text-white hover:text-slate-100">
+            Clients
+          </Link>
+          <Link to="/addClient" className="text-white hover:text-slate-100">
+            Create Client
+          </Link>
+          <Link to="/addArticles" className="text-white hover:text-slate-100">
+            Add Articles
+          </Link>
         </nav>
 
-        <Routes>
-          <Route path="/" element={<Home clients={clients} />} />
-          <Route
-            path="/clients/:id"
-            element={<ClientDetails clients={clients} />}
-          />
-          <Route path="/createClient" element={<CreateClient />} />
-          <Route path="/updateClient/:id" element={<UpdateClientName />} />
-        </Routes>
+        <div className="overflow-y-auto flex justify-center items-center w-full h-full">
+          <Routes>
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/clients/:id" element={<ClientDetails />} />
+            <Route path="/addClient" element={<AddClient />} />
+            <Route path="/updateClient/:id" element={<UpdateClientName />} />
+            <Route path="/addArticles" element={<AddArticles />} />
+          </Routes>
+        </div>
       </div>
     </>
   );

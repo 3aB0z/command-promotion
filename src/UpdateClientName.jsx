@@ -13,7 +13,7 @@ export default function UpdateClientName() {
     async function updateClient() {
       try {
         const response = await axios.patch(
-          `https://REDACTED_SAP_HOST:50000/b1s/v1/BusinessPartners('${id}')`,
+          `https://REDACTED_SAP_HOST:50000/b1s/v2/BusinessPartners('${id}')`,
           JSON.stringify({ CardName: cardName }),
           {
             headers: {
@@ -35,15 +35,24 @@ export default function UpdateClientName() {
 
   return (
     <>
-      <form onSubmit={handleSubmit} method="POST">
-        <label htmlFor="cardName">CardName:</label>
-        <input
-          type="text"
-          name="cardName"
-          value={cardName}
-          onChange={(e) => setCardName(e.target.value)}
-        />
-        <button type="submit">Update</button>
+      <form
+        onSubmit={handleSubmit}
+        method="POST"
+        className="flex w-96 flex-col space-y-3 bg-slate-50 px-6 py-4 rounded-lg"
+      >
+        <div className="flex flex-col space-y-1">
+          <label htmlFor="cardName">CardName:</label>
+          <input
+            className="border border-slate-300 rounded"
+            type="text"
+            name="cardName"
+            value={cardName}
+            onChange={(e) => setCardName(e.target.value)}
+          />
+        </div>
+        <button type="submit" className="border text-white bg-blue-500">
+          Update
+        </button>
       </form>
     </>
   );
