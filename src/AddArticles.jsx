@@ -105,68 +105,38 @@ export default function AddArticles() {
   }
 
   useEffect(() => {
-    searchPromotions();
+    function resetPromotions() {
+      setPromotions([]);
+      setPromotionArticlesMap({});
+      setSelectedPromotionArticlesMap({});
+    }
+
+    resetPromotions();
   }, [selectedArticles.length]);
 
   return (
     <>
-      <div className="w-full h-full flex flex-col justify-center items-center p-6 gap-y-5">
-        <form
-          method="POST"
-          className="flex w-96 flex-col space-y-3 bg-slate-50 px-6 py-4 rounded-lg"
-        >
-          <div className="flex justify-between items-center">
-            <label>Articles:</label>
-            <Button
-              onClick={() => setIsArticlesOpen(true)}
-              className="border border-blue-500 bg-blue-50"
-            >
-              Select Articles
-            </Button>
-            <Dialog
-              footer={
-                <FlexBox
-                  fitContainer
-                  justifyContent="End"
-                  style={{ paddingBlock: "0.25rem" }}
-                >
-                  <Button onClick={() => setIsArticlesOpen(false)}>
-                    Close
-                  </Button>
-                </FlexBox>
-              }
-              onClose={() => setIsArticlesOpen(false)}
-              headerText="Available Articles"
-              open={isArticlesOpen}
-            >
-              <Articles
-                selectedArticles={selectedArticles}
-                setSelectedArticles={setSelectedArticles}
-              />
-            </Dialog>
-          </div>
-          <button
-            type="submit"
-            className="border text-white py-1.5 bg-blue-500"
-            onClick={(e) => e.preventDefault()}
-          >
-            Submit
-          </button>
-        </form>
+      <div className="relative w-full h-full flex flex-col justify-center items-center p-6 gap-y-5">
         <DisplaySelectedArticles
           selectedArticles={selectedArticles}
           setSelectedArticles={setSelectedArticles}
+          isArticlesOpen={isArticlesOpen}
+          setIsArticlesOpen={(value) => setIsArticlesOpen(value)}
         />
         <div className="w-full flex justify-between items-center">
           <button
             type="button"
-            className="border text-white py-1.5 bg-emerald-500 hover:border-emerald-600 hover:bg-emerald-600 transition-colors"
+            className="border text-white py-1.5 bg-emerald-400 border-none hover:bg-emerald-500 transition-colors"
             onClick={searchPromotions}
           >
             Search for promotions
           </button>
           <div className="flex items-center gap-x-3">
-            <BusyIndicator active={isLoading} size="S" />
+            <BusyIndicator
+              active={isLoading}
+              size="M"
+              className="text-amber-500 p-1"
+            />
             {Object.keys(promotionArticlesMap).map((family) => {
               const promotionArticles = promotionArticlesMap[family];
               return promotionArticles.length > 0 ? (
@@ -178,7 +148,7 @@ export default function AddArticles() {
                         [family]: true,
                       }))
                     }
-                    className="border text-emerald-500 text-base py-1.5 bg-emerald-50 border-emerald-500 hover:bg-emerald-100 hover:text-emerald-600 hover:border-emerald-600 transition-colors"
+                    className="border text-amber-500 text-sm py-1 bg-amber-50 border-amber-500 hover:bg-amber-100 hover:text-amber-600 hover:border-amber-600 transition-colors"
                   >
                     {family} promotions
                   </Button>

@@ -1,4 +1,7 @@
 import {
+  Button,
+  Dialog,
+  FlexBox,
   Table,
   TableCell,
   TableHeaderCell,
@@ -7,10 +10,13 @@ import {
   TableRowAction,
 } from "@ui5/webcomponents-react";
 import "@ui5/webcomponents-icons/dist/AllIcons.js";
+import Articles from "./Articles";
 
 export default function DisplaySelectedArticles({
   selectedArticles,
   setSelectedArticles,
+  isArticlesOpen,
+  setIsArticlesOpen,
 }) {
   function deleteArticle(selectedItemCode) {
     setSelectedArticles((prv) => {
@@ -38,9 +44,47 @@ export default function DisplaySelectedArticles({
   return (
     <>
       <div className="space-y-2 w-full">
-        <h1 className="text-xl font-semibold text-blue-500">
-          Selected Articles
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-semibold text-blue-500">
+            Selected Articles
+          </h1>
+          <Button
+            onClick={() => setIsArticlesOpen(true)}
+            className="border border-blue-500 bg-blue-50 hover:bg-blue-100 transition-colors"
+          >
+            <div className="flex flex-row items-center gap-x-1">
+              <span>Select Articles</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 448 512"
+                height={12}
+                width={10.5}
+                className="fill-blue-600"
+              >
+                <path d="M201.4 374.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 306.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z" />
+              </svg>
+            </div>
+          </Button>
+          <Dialog
+            footer={
+              <FlexBox
+                fitContainer
+                justifyContent="End"
+                style={{ paddingBlock: "0.25rem" }}
+              >
+                <Button onClick={() => setIsArticlesOpen(false)}>Close</Button>
+              </FlexBox>
+            }
+            onClose={() => setIsArticlesOpen(false)}
+            headerText="Available Articles"
+            open={isArticlesOpen}
+          >
+            <Articles
+              selectedArticles={selectedArticles}
+              setSelectedArticles={setSelectedArticles}
+            />
+          </Dialog>
+        </div>
         <Table
           headerRow={
             <TableHeaderRow sticky className="bg-gray-100 h-11">
@@ -59,7 +103,7 @@ export default function DisplaySelectedArticles({
               <TableHeaderCell minWidth="100px" width="auto">
                 <span>Quantity</span>
               </TableHeaderCell>
-              <TableHeaderCell minWidth="100px" width="100px">
+              <TableHeaderCell minWidth="55px" width="55px">
                 <span>Actions</span>
               </TableHeaderCell>
             </TableHeaderRow>
