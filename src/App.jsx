@@ -78,7 +78,7 @@ function App() {
   return (
     <>
       <div className="relative w-full h-screen flex flex-col justify-start items-center">
-        <nav className="sticky top-0 z-50 w-full h-12 flex justify-center items-center underline from-emerald-300 to-sky-400 bg-gradient-to-r space-x-6">
+        <nav className="fixed top-0 z-50 w-full h-11 flex justify-center items-center underline from-emerald-300 to-sky-400 bg-gradient-to-r space-x-6">
           <Link to="/clients" className="text-white hover:text-slate-100">
             Clients
           </Link>
@@ -90,7 +90,7 @@ function App() {
           </Link>
         </nav>
 
-        <div className="overflow-y-auto flex justify-center items-center w-full h-full">
+        <div className="flex justify-center items-center w-full">
           <Routes>
             <Route path="/clients" element={<Clients />} />
             <Route path="/clients/:id" element={<ClientDetails />} />

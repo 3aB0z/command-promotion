@@ -1,4 +1,5 @@
 import {
+  StepInput,
   Table,
   TableCell,
   TableHeaderCell,
@@ -12,34 +13,19 @@ export default function Promotions({
   setPromotionArticles,
   selectedPromotionArticles,
   setSelectedPromotionArticles,
-  promotions,
 }) {
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
   const [remainingQuantity, setRemainingQuantity] = useState(0);
 
-  useEffect(() => {
-    const total = selectedPromotionArticles.reduce(
-      (acc, cur) => acc + cur.Quantity,
-      0
-    );
-    setSelectedQuantity(total);
-  }, [selectedPromotionArticles]);
-
-  useEffect(() => {
-    setRemainingQuantity(totalQuantity - selectedQuantity);
-  }, [totalQuantity, selectedQuantity]);
-
-  useEffect(() => {
-    if (promotions.length > 0 && promotions[0].U_QtyFree) {
-      setTotalQuantity(promotions[0].U_QtyFree);
-    } else {
-      setTotalQuantity(3);
-    }
-  }, [promotions]);
-
   function handleQuantityChange(e, selectedItem) {
-    const newValue = Number(e.target.value);
+    let inputVal = Number(e.target.value);
+    if (inputVal < 0) return;
+    const allowedMax = selectedItem.Quantity + remainingQuantity;
+    if (inputVal > allowedMax) {
+      inputVal = allowedMax;
+    }
+    const newValue = inputVal;
     const existing = selectedPromotionArticles.find(
       (x) => x.ItemCode === selectedItem.ItemCode
     );
@@ -49,13 +35,11 @@ export default function Promotions({
       0
     );
     const newTotal = currentTotal - oldQty + newValue;
-
     if (newValue >= 0 && newTotal <= totalQuantity) {
       const updatedPromotionArticles = promotionArticles.map((x) =>
         x.ItemCode === selectedItem.ItemCode ? { ...x, Quantity: newValue } : x
       );
       setPromotionArticles(updatedPromotionArticles);
-
       if (newValue > 0) {
         if (existing) {
           const updatedSelected = selectedPromotionArticles.map((x) =>
@@ -79,6 +63,26 @@ export default function Promotions({
     }
   }
 
+  useEffect(() => {
+    const total = selectedPromotionArticles.reduce(
+      (acc, cur) => acc + cur.Quantity,
+      0
+    );
+    setSelectedQuantity(total);
+  }, [selectedPromotionArticles]);
+
+  useEffect(() => {
+    setRemainingQuantity(totalQuantity - selectedQuantity);
+  }, [totalQuantity, selectedQuantity]);
+
+  useEffect(() => {
+    if (promotionArticles.length > 0 && promotionArticles[0].U_QtyFree) {
+      setTotalQuantity(promotionArticles[0].U_QtyFree);
+    } else {
+      setTotalQuantity(3);
+    }
+  }, [promotionArticles]);
+
   return (
     <div className="flex flex-col justify-center items-start gap-y-4 w-full h-full">
       {promotionArticles.length !== 0 ? (
@@ -99,7 +103,7 @@ export default function Promotions({
                 <TableHeaderCell minWidth="200px">
                   <span>Family</span>
                 </TableHeaderCell>
-                <TableHeaderCell maxWidth="200px" minWidth="100px">
+                <TableHeaderCell width="150px">
                   <span>Quantity</span>
                 </TableHeaderCell>
               </TableHeaderRow>
@@ -124,19 +128,18 @@ export default function Promotions({
                     {promotionArticle.ItemName}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {promotionArticle.U_Family}
+                    {promotionArticle.U_PromoFamily}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    <input
-                      type="number"
-                      min={0}
-                      value={promotionArticle.Quantity}
-                      onChange={(e) =>
+                    <StepInput
+                      onValueStateChange={(e) =>
                         handleQuantityChange(e, promotionArticle)
                       }
-                      className={`${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } w-[65px] px-0.5 py-1 mx-0.5 rounded-sm`}
+                      valueState="None"
+                      min={0}
+                      max={promotionArticle.Quantity + remainingQuantity}
+                      value={promotionArticle.Quantity}
+                      className="rounded"
                     />
                   </TableCell>
                 </TableRow>
