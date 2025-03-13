@@ -18,21 +18,21 @@ export default function DisplaySelectedArticles({
   setSelectedArticles,
   isArticlesOpen,
   setIsArticlesOpen,
-  setPromotionArticlesMap,
-  setSelectedPromotionArticlesMap,
+  setPromotionArticles,
+  setSelectedPromotionArticles,
 }) {
   function deleteArticle(selectedItemCode) {
     setSelectedArticles((prv) => {
       return [...prv.filter((item) => item.ItemCode != selectedItemCode)];
     });
 
-    setPromotionArticlesMap((prev) => {
+    setPromotionArticles((prev) => {
       const newMap = { ...prev };
       delete newMap[selectedItemCode];
       return newMap;
     });
 
-    setSelectedPromotionArticlesMap((prev) => {
+    setSelectedPromotionArticles((prev) => {
       const newMap = { ...prev };
       delete newMap[selectedItemCode];
       return newMap;

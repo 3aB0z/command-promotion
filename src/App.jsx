@@ -90,7 +90,7 @@ function App() {
           </Link>
         </nav>
 
-        <div className="flex justify-center items-center w-full">
+        <div className="flex justify-center items-center w-full px-5 pt-16 pb-5 min-w-full">
           <Routes>
             <Route path="/clients" element={<Clients />} />
             <Route path="/clients/:id" element={<ClientDetails />} />

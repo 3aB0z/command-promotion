@@ -73,7 +73,10 @@ export default function ClientDetails() {
           </li>
         </ul>
       ) : (
-        <p>The client you want was not found!</p>
+        <div className="flex flex-col items-center gap-y-1 text-xl font-medium text-rose-600">
+          <span>Oops!</span>
+          <p>The client you want was not found!</p>
+        </div>
       )}
     </>
   );

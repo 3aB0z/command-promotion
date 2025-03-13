@@ -16,17 +16,18 @@ import Promotions from "./Promotions";
 
 export default function AddArticles() {
   const [selectedArticles, setSelectedArticles] = useState([]);
-  const [promotionArticlesMap, setPromotionArticlesMap] = useState({});
-  const [selectedPromotionArticlesMap, setSelectedPromotionArticlesMap] =
-    useState({});
+  const [promotionArticles, setPromotionArticles] = useState({});
+  const [selectedPromotionArticles, setSelectedPromotionArticles] = useState(
+    {}
+  );
   const [isArticlesOpen, setIsArticlesOpen] = useState(false);
   const [visiblePromotions, setVisiblePromotions] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
   async function fetchPromotionArticles(article) {
     try {
-      const promoFamilyResponse = await axios.get(
-        `https://REDACTED_SAP_HOST:50000/b1s/v2/PROMOTIONS?$select=U_PromoFamily&$filter=U_ArticleFamily eq '${article.U_Family}'`,
+      const promotionsResponse = await axios.get(
+        `https://REDACTED_SAP_HOST:50000/b1s/v2/PROMOTIONS?$select=U_PromoFamily,U_QtyRequired,U_QtyFree&$filter=U_ArticleFamily eq '${article.U_Family}' and U_QtyRequired le ${article.Quantity}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -36,10 +37,11 @@ export default function AddArticles() {
         }
       );
 
-      const promoFamily = promoFamilyResponse.data.value[0]?.U_PromoFamily;
-      if (!promoFamily) return [];
+      if (!promotionsResponse.data.value?.length) return [];
 
-      const response = await axios.get(
+      const promoFamily = promotionsResponse.data.value[0].U_PromoFamily;
+
+      const itemsResponse = await axios.get(
         `https://REDACTED_SAP_HOST:50000/b1s/v2/Items?$select=ItemCode,ItemName,U_Family&$filter=U_Family eq '${promoFamily}'`,
         {
           headers: {
@@ -50,75 +52,82 @@ export default function AddArticles() {
         }
       );
 
-      const promotionsResponse = await axios.get(
-        `https://REDACTED_SAP_HOST:50000/b1s/v2/PROMOTIONS?$select=U_QtyRequired,U_QtyFree,U_ArticleFamily,U_PromoFamily&$filter=U_ArticleFamily eq '${article.U_Family}' and U_QtyRequired le ${article.Quantity}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
-
-      return response.data.value.map((item) => {
-        const promotion = promotionsResponse.data.value.find(
-          (p) => p.U_PromoFamily === item.U_Family
-        );
-        return {
-          ItemCode: item.ItemCode,
-          ItemName: item.ItemName,
-          U_Family: item.U_Family,
-          U_ArticleFamily: article.U_Family,
-          U_PromoFamily: item.U_Family,
-          U_QtyFree: promotion?.U_QtyFree || 0,
-          U_QtyRequired: promotion?.U_QtyRequired || 0,
-          Quantity: 0,
-        };
-      });
+      // Combiner les données
+      return itemsResponse.data.value.map((item) => ({
+        ItemCode: item.ItemCode,
+        ItemName: item.ItemName,
+        U_Family: item.U_Family,
+        U_ArticleFamily: article.U_Family,
+        U_PromoFamily: promoFamily,
+        U_QtyFree: promotionsResponse.data.value[0].U_QtyFree,
+        U_QtyRequired: promotionsResponse.data.value[0].U_QtyRequired,
+        Quantity: 0,
+      }));
     } catch (error) {
-      console.error(error);
+      console.error("Erreur lors de la récupération des promotions:", error);
       return [];
     }
   }
 
   async function searchPromotions() {
     setIsLoading(true);
-    const results = await Promise.all(
-      selectedArticles.map((item) => fetchPromotionArticles(item))
-    );
-    const newMap = {};
-    selectedArticles.forEach((article, index) => {
-      newMap[article.ItemCode] = results[index];
-    });
-    console.log(results, newMap);
-    setPromotionArticlesMap(newMap);
-    setSelectedPromotionArticlesMap({});
-    setIsLoading(false);
+    try {
+      const newResults = await Promise.all(
+        selectedArticles.map(async (item) => {
+          return await fetchPromotionArticles(item);
+        })
+      );
+
+      setPromotionArticles((prev) => {
+        const updated = { ...prev };
+        selectedArticles.forEach((article, index) => {
+          if (!updated[article.ItemCode]) {
+            updated[article.ItemCode] = newResults[index];
+          }
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.error("Promotions fetch failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function updateSelectedPromotionArticles(itemCode, updatedList) {
-    setSelectedPromotionArticlesMap((prev) => ({
+    setSelectedPromotionArticles((prev) => ({
       ...prev,
       [itemCode]: updatedList,
     }));
   }
 
+  const aggregatedPromotions = Object.values(selectedPromotionArticles)
+    .flat()
+    .reduce((acc, curr) => {
+      const existing = acc.find((item) => item.ItemCode === curr.ItemCode);
+      if (existing) {
+        existing.Quantity += curr.Quantity;
+      } else {
+        acc.push({ ...curr });
+      }
+      return acc;
+    }, []);
+
   return (
     <>
-      <div className="relative w-full flex flex-col justify-center items-center p-6 gap-y-7 top-[69px]">
+      <div className="relative w-full flex flex-col justify-center items-center gap-y-7">
         <DisplaySelectedArticles
           selectedArticles={selectedArticles}
           setSelectedArticles={setSelectedArticles}
           isArticlesOpen={isArticlesOpen}
           setIsArticlesOpen={setIsArticlesOpen}
-          setPromotionArticlesMap={setPromotionArticlesMap}
-          setSelectedPromotionArticlesMap={setSelectedPromotionArticlesMap}
+          setPromotionArticles={setPromotionArticles}
+          setSelectedPromotionArticles={setSelectedPromotionArticles}
         />
-        <div className="w-full flex justify-between items-center">
+        <div className="w-full flex justify-between items-start">
           <button
             type="button"
-            className="border text-white py-1.5 bg-emerald-400 border-none hover:bg-emerald-500 transition-colors"
+            className="border text-white py-1.5 bg-emerald-400 border-none hover:bg-emerald-500 transition-colors min-w-fit"
             onClick={searchPromotions}
           >
             Search for promotions
@@ -127,11 +136,11 @@ export default function AddArticles() {
             <BusyIndicator
               active={isLoading}
               size="M"
-              className="text-amber-500 p-1"
+              className="text-amber-500"
             />
-            {Object.keys(promotionArticlesMap).map((itemCode) => {
-              const promotionArticles = promotionArticlesMap[itemCode];
-              return promotionArticles.length > 0 ? (
+            {Object.keys(promotionArticles).map((itemCode) => {
+              const isPromotionArticles = promotionArticles[itemCode];
+              return isPromotionArticles.length > 0 ? (
                 <div key={itemCode}>
                   <Button
                     onClick={() =>
@@ -180,15 +189,15 @@ export default function AddArticles() {
                     open={visiblePromotions[itemCode] || false}
                   >
                     <Promotions
-                      promotionArticles={promotionArticlesMap[itemCode] || []}
+                      promotionArticles={promotionArticles[itemCode] || []}
                       setPromotionArticles={(updatedList) =>
-                        setPromotionArticlesMap((prev) => ({
+                        setPromotionArticles((prev) => ({
                           ...prev,
                           [itemCode]: updatedList,
                         }))
                       }
                       selectedPromotionArticles={
-                        selectedPromotionArticlesMap[itemCode] || []
+                        selectedPromotionArticles[itemCode] || []
                       }
                       setSelectedPromotionArticles={(updatedList) =>
                         updateSelectedPromotionArticles(itemCode, updatedList)
@@ -200,69 +209,54 @@ export default function AddArticles() {
             })}
           </div>
         </div>
-        {Object.keys(selectedPromotionArticlesMap).map((itemCode) => {
-          return (
-            selectedPromotionArticlesMap[itemCode].length > 0 && (
-              <div key={itemCode} className="space-y-2 w-full">
-                <h1 className="text-xl font-semibold text-amber-500">
-                  Selected {itemCode} Promotions:
-                </h1>
-                <Table
-                  headerRow={
-                    <TableHeaderRow sticky className="bg-gray-100 h-11">
-                      <TableHeaderCell minWidth="200px">
-                        <span>Item Code</span>
-                      </TableHeaderCell>
-                      <TableHeaderCell minWidth="200px" width="auto">
-                        <span>Item Name</span>
-                      </TableHeaderCell>
-                      <TableHeaderCell minWidth="200px">
-                        <span>Family</span>
-                      </TableHeaderCell>
-                      <TableHeaderCell width="150px">
-                        <span>Quantity</span>
-                      </TableHeaderCell>
-                    </TableHeaderRow>
-                  }
-                  className="divide-y divide-gray-200 border"
+        <div className="space-y-2 w-full">
+          <h1 className="text-xl font-semibold text-amber-500">
+            Selected Promotions:
+          </h1>
+          <Table
+            headerRow={
+              <TableHeaderRow sticky className="bg-gray-100 h-11">
+                <TableHeaderCell minWidth="200px">
+                  <span>Item Code</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="200px" width="auto">
+                  <span>Item Name</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="200px">
+                  <span>Family</span>
+                </TableHeaderCell>
+                <TableHeaderCell width="150px">
+                  <span>Total Quantity</span>
+                </TableHeaderCell>
+              </TableHeaderRow>
+            }
+            className="divide-y divide-gray-200 border"
+          >
+            {aggregatedPromotions.map((promotionArticle, index) => {
+              return (
+                <TableRow
+                  key={`${promotionArticle.ItemCode}-${index}`}
+                  className={`${
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  } hover:bg-stone-200 transition-colors duration-200`}
                 >
-                  {selectedPromotionArticlesMap[itemCode].map(
-                    (promotionArticle, index) => {
-                      const isPromotionSelected = selectedPromotionArticlesMap[
-                        itemCode
-                      ].some(
-                        (item) => item.ItemCode === promotionArticle.ItemCode
-                      );
-                      return (
-                        <TableRow
-                          key={`${promotionArticle.ItemCode}-${index}`}
-                          className={`${
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } ${
-                            isPromotionSelected && "bg-emerald-100"
-                          } hover:bg-stone-200 transition-colors duration-200`}
-                        >
-                          <TableCell className="px-4 py-2 whitespace-nowrap">
-                            {promotionArticle.ItemCode}
-                          </TableCell>
-                          <TableCell className="px-4 py-2 whitespace-nowrap">
-                            {promotionArticle.ItemName}
-                          </TableCell>
-                          <TableCell className="px-4 py-2 whitespace-nowrap">
-                            {promotionArticle.U_PromoFamily}
-                          </TableCell>
-                          <TableCell className="px-4 py-2 whitespace-nowrap">
-                            {promotionArticle.Quantity}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    }
-                  )}
-                </Table>
-              </div>
-            )
-          );
-        })}
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.ItemCode}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.ItemName}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.U_PromoFamily}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {promotionArticle.Quantity}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </Table>
+        </div>
       </div>
     </>
   );
