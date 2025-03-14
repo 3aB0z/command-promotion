@@ -115,7 +115,7 @@ export default function AddArticles() {
 
   return (
     <>
-      <div className="relative w-full flex flex-col justify-center items-center gap-y-7">
+      <div className="relative w-full flex flex-col justify-center items-center gap-y-7 p-4">
         <DisplaySelectedArticles
           selectedArticles={selectedArticles}
           setSelectedArticles={setSelectedArticles}

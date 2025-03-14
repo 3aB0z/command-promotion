@@ -1,9 +1,18 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  Table,
+  TableRow,
+  TableCell,
+  TableHeaderRow,
+  TableHeaderCell,
+} from "@ui5/webcomponents-react";
 
 export default function Home() {
   const [clients, setClients] = useState([]);
+
+  const isClintsFetched = clients.length === 0;
 
   useEffect(() => {
     async function fetchClients() {
@@ -18,67 +27,55 @@ export default function Home() {
             withCredentials: true,
           }
         );
-        const data = await response.data.value;
-
-        setClients(data);
+        setClients(response.data.value);
       } catch (error) {
         console.error(error.message);
       }
     }
-
     fetchClients();
-  }, []);
+  }, [isClintsFetched]);
+
   return (
-    <>
-      <div className="flex justify-center items-center">
-        {clients.length !== 0 ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr className="bg-zinc-300">
-                <th className="px-4 py-2 text-left font-medium text-gray-700 tracking-wider sticky top-0 bg-gray-100">
-                  Card Code:
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700 tracking-wider sticky top-0 bg-gray-100">
-                  Card Name:
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700 tracking-wider sticky top-0 bg-gray-100">
-                  Card Type:
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-gray-700 tracking-wider sticky top-0 bg-gray-100">
-                  Details:
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {clients.map((client, index) => {
-                return (
-                  <tr
-                    key={client.CardCode}
-                    className={`${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-stone-200 transition-colors duration-200`}
-                  >
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {client.CardCode}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {client.CardName}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {client.CardType}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <Link to={`/clients/${client.CardCode}`}>Details</Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <span>Clients table is empty!</span>
-        )}
-      </div>
-    </>
+    <div className="flex justify-center items-center p-4">
+      {clients.length > 0 ? (
+        <Table
+          headerRow={
+            <TableHeaderRow sticky className="bg-gray-100 h-11">
+              <TableHeaderCell minWidth="200px">
+                <span>Card Code</span>
+              </TableHeaderCell>
+              <TableHeaderCell minWidth="200px" width="auto">
+                <span>Card Name</span>
+              </TableHeaderCell>
+              <TableHeaderCell minWidth="200px">
+                <span>Card Type</span>
+              </TableHeaderCell>
+              <TableHeaderCell width="150px">
+                <span>Details</span>
+              </TableHeaderCell>
+            </TableHeaderRow>
+          }
+          className="divide-y divide-gray-200 border"
+        >
+          {clients.map((client) => (
+            <TableRow key={client.CardCode}>
+              <TableCell>{client.CardCode}</TableCell>
+              <TableCell>{client.CardName}</TableCell>
+              <TableCell>{client.CardType}</TableCell>
+              <TableCell>
+                <Link
+                  to={`/clients/${client.CardCode}`}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  Details
+                </Link>
+              </TableCell>
+            </TableRow>
+          ))}
+        </Table>
+      ) : (
+        <div className="text-gray-500">Clients table is empty!</div>
+      )}
+    </div>
   );
 }

@@ -1,13 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export default function UpdateClientName() {
   const [cardName, setCardName] = useState("");
 
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     async function updateClient() {
@@ -30,7 +31,8 @@ export default function UpdateClientName() {
       }
     }
 
-    updateClient();
+    await updateClient();
+    navigate(`/clients/${id}`);
   }
 
   return (
@@ -41,6 +43,9 @@ export default function UpdateClientName() {
         className="flex w-96 flex-col space-y-3 bg-slate-50 px-6 py-4 rounded-lg"
       >
         <div className="flex flex-col space-y-1">
+          <h1 className="text-2xl text-center font-medium text-blue-600 mb-8 pt-2">
+            Update Card Name
+          </h1>
           <label htmlFor="cardName">CardName:</label>
           <input
             className="border border-slate-300 rounded"

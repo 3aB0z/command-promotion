@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function AddClient() {
   const [formInputs, setFormInputs] = useState({
@@ -7,6 +8,9 @@ export default function AddClient() {
     cardName: "",
     cardType: "",
   });
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -16,7 +20,7 @@ export default function AddClient() {
         const data = {
           CardCode: formInputs.cardCode,
           CardName: formInputs.cardName,
-          CardType: formInputs.cardType,
+          CardType: formInputs.cardType.toUpperCase(),
         };
 
         const response = await axios.post(
@@ -31,14 +35,17 @@ export default function AddClient() {
           }
         );
 
+        setError("");
         console.log(
           "Client created successfully:",
           response.data.CardCode,
           response.data.CardName,
           response.data.CardType
         );
+        navigate("/clients");
       } catch (error) {
         console.error(error.message);
+        setError("Invalid values!");
       }
     }
 
@@ -94,9 +101,10 @@ export default function AddClient() {
             }
           />
         </div>
-        <button type="submit" className="border text-white bg-blue-500">
+        <button type="submit" className="border text-white bg-blue-500 mt-4">
           Create
         </button>
+        {error && <span className="text-rose-500 text-center">{error}</span>}
       </form>
     </>
   );
