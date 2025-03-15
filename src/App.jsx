@@ -11,37 +11,7 @@ import AddClient from "./AddClient";
 function App() {
   // Auto Login
   useEffect(() => {
-    async function loginToSAPv1() {
-      try {
-        const loginData = {
-          CompanyDB: "SBODemo",
-          UserName: "REDACTED_USERNAME",
-          Password: "REDACTED_CREDENTIAL",
-        };
-
-        const response = await axios.post(
-          "https://REDACTED_SAP_HOST:50000/b1s/v2/Login",
-          loginData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
-        );
-
-        return response.data;
-      } catch (error) {
-        console.error(
-          "SAP Login1 Error:",
-          error.response?.data || error.message
-        );
-        throw new Error("Failed to authenticate with SAP Service Layer");
-      }
-    }
-
-    async function loginToSAPv2() {
+    async function loginToSAP() {
       try {
         const loginData = {
           CompanyDB: "REDACTED_COMPANY_DATABASE",
@@ -71,8 +41,7 @@ function App() {
       }
     }
 
-    loginToSAPv2();
-    loginToSAPv1();
+    loginToSAP();
   }, []);
 
   return (

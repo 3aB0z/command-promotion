@@ -13,16 +13,23 @@ import {
 import DisplaySelectedArticles from "./DisplaySelectedArticles";
 import axios from "axios";
 import Promotions from "./Promotions";
+import DisplaySelectedClients from "./DisplaySelectedClients";
 
 export default function AddArticles() {
   const [selectedArticles, setSelectedArticles] = useState([]);
+  const [selectedClient, setSelectedClient] = useState({
+    CardCode: "",
+    CardName: "",
+    CardType: "",
+  });
   const [promotionArticles, setPromotionArticles] = useState({});
   const [selectedPromotionArticles, setSelectedPromotionArticles] = useState(
     {}
   );
   const [isArticlesOpen, setIsArticlesOpen] = useState(false);
   const [visiblePromotions, setVisiblePromotions] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPromotionLoading, setIsPromotionLoading] = useState(false);
+  const [isOrderLoading, setIsOrderLoading] = useState(false);
 
   async function fetchPromotionArticles(article) {
     try {
@@ -52,7 +59,6 @@ export default function AddArticles() {
         }
       );
 
-      // Combiner les données
       return itemsResponse.data.value.map((item) => ({
         ItemCode: item.ItemCode,
         ItemName: item.ItemName,
@@ -70,7 +76,7 @@ export default function AddArticles() {
   }
 
   async function searchPromotions() {
-    setIsLoading(true);
+    setIsPromotionLoading(true);
     try {
       const newResults = await Promise.all(
         selectedArticles.map(async (item) => {
@@ -89,9 +95,8 @@ export default function AddArticles() {
       });
     } catch (error) {
       console.error("Promotions fetch failed:", error);
-    } finally {
-      setIsLoading(false);
     }
+    setIsPromotionLoading(false);
   }
 
   function updateSelectedPromotionArticles(itemCode, updatedList) {
@@ -101,7 +106,7 @@ export default function AddArticles() {
     }));
   }
 
-  const aggregatedPromotions = Object.values(selectedPromotionArticles)
+  const orderArticles = Object.values(selectedPromotionArticles)
     .flat()
     .reduce((acc, curr) => {
       const existing = acc.find((item) => item.ItemCode === curr.ItemCode);
@@ -113,149 +118,215 @@ export default function AddArticles() {
       return acc;
     }, []);
 
+  function createOrder() {
+    if (selectedClient.CardCode !== "") {
+      setIsOrderLoading(true);
+      async function create() {
+        const orderedArticles = [...selectedArticles, ...orderArticles];
+        const documentLines = orderedArticles.map((article) => {
+          return {
+            ItemCode: article.ItemCode,
+            Quantity: article.Quantity,
+          };
+        });
+        const order = {
+          CardCode: selectedClient.CardCode,
+          DocDueDate: new Date(),
+          DocumentLines: documentLines,
+        };
+
+        try {
+          const response = await axios.post(
+            "https://REDACTED_SAP_HOST:50000/b1s/v2/Orders",
+            order,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              withCredentials: true,
+            }
+          );
+          console.log("Order Created Sucessfully: ", response);
+        } catch (error) {
+          console.error(error);
+        }
+        setIsOrderLoading(false);
+      }
+
+      create();
+    }
+  }
+
   return (
     <>
-      <div className="relative w-full flex flex-col justify-center items-center gap-y-7 p-4">
-        <DisplaySelectedArticles
-          selectedArticles={selectedArticles}
-          setSelectedArticles={setSelectedArticles}
-          isArticlesOpen={isArticlesOpen}
-          setIsArticlesOpen={setIsArticlesOpen}
-          setPromotionArticles={setPromotionArticles}
-          setSelectedPromotionArticles={setSelectedPromotionArticles}
-        />
-        <div className="w-full flex justify-between items-start">
-          <button
-            type="button"
-            className="border text-white py-1.5 bg-emerald-400 border-none hover:bg-emerald-500 transition-colors min-w-fit"
-            onClick={searchPromotions}
-          >
-            Search for promotions
-          </button>
-          <div className="flex justify-end items-center flex-wrap gap-3">
-            <BusyIndicator
-              active={isLoading}
-              size="M"
-              className="text-amber-500"
-            />
-            {Object.keys(promotionArticles).map((itemCode) => {
-              const isPromotionArticles = promotionArticles[itemCode];
-              return isPromotionArticles.length > 0 ? (
-                <div key={itemCode}>
-                  <Button
-                    onClick={() =>
-                      setVisiblePromotions((prev) => ({
-                        ...prev,
-                        [itemCode]: true,
-                      }))
-                    }
-                    className="border text-amber-500 text-sm py-1 bg-amber-50 border-amber-500 hover:bg-amber-100 hover:text-amber-600 hover:border-amber-600 transition-colors"
-                  >
-                    {itemCode} promotions
-                  </Button>
-                  <Dialog
-                    footer={
-                      <FlexBox
-                        fitContainer
-                        justifyContent="End"
-                        style={{ paddingBlock: "0.25rem" }}
-                      >
-                        <Button
-                          onClick={() =>
-                            setVisiblePromotions((prev) => ({
-                              ...prev,
-                              [itemCode]: false,
-                            }))
-                          }
-                        >
-                          Close
-                        </Button>
-                      </FlexBox>
-                    }
-                    onClose={() =>
-                      setVisiblePromotions((prev) => ({
-                        ...prev,
-                        [itemCode]: false,
-                      }))
-                    }
-                    header={
-                      <p className="w-full py-3 text-slate-600">
-                        Select Promotion Articles for{" "}
-                        <span className="text-emerald-500 font-medium">
-                          {itemCode}
-                        </span>
-                      </p>
-                    }
-                    open={visiblePromotions[itemCode] || false}
-                  >
-                    <Promotions
-                      promotionArticles={promotionArticles[itemCode] || []}
-                      setPromotionArticles={(updatedList) =>
-                        setPromotionArticles((prev) => ({
+      <div className="relative w-full flex flex-col justify-center items-center gap-y-16 p-4">
+        <div className="w-full flex flex-col justify-center items-center gap-y-6">
+          <h1 className="text-4xl text-slate-600 font-bold">Articles</h1>
+          <DisplaySelectedArticles
+            selectedArticles={selectedArticles}
+            setSelectedArticles={setSelectedArticles}
+            isArticlesOpen={isArticlesOpen}
+            setIsArticlesOpen={setIsArticlesOpen}
+            setPromotionArticles={setPromotionArticles}
+            setSelectedPromotionArticles={setSelectedPromotionArticles}
+          />
+          <div className="w-full flex justify-between items-start">
+            <button
+              type="button"
+              className="border text-white py-1.5 bg-teal-400 border-none hover:bg-teal-500 transition-colors"
+              onClick={searchPromotions}
+            >
+              Search for promotions
+            </button>
+            <div className="flex justify-end items-center flex-wrap gap-3">
+              {isPromotionLoading && (
+                <BusyIndicator
+                  active={true}
+                  size="M"
+                  className="text-amber-500"
+                />
+              )}
+              {Object.keys(promotionArticles).map((itemCode) => {
+                const isPromotionArticles = promotionArticles[itemCode];
+                return isPromotionArticles.length > 0 ? (
+                  <div key={itemCode}>
+                    <Button
+                      onClick={() =>
+                        setVisiblePromotions((prev) => ({
                           ...prev,
-                          [itemCode]: updatedList,
+                          [itemCode]: true,
                         }))
                       }
-                      selectedPromotionArticles={
-                        selectedPromotionArticles[itemCode] || []
+                      className="border text-amber-500 text-sm py-1 bg-amber-50 border-amber-500 hover:bg-amber-100 hover:text-amber-600 hover:border-amber-600 transition-colors"
+                    >
+                      {itemCode} promotions
+                    </Button>
+                    <Dialog
+                      footer={
+                        <FlexBox
+                          fitContainer
+                          justifyContent="End"
+                          style={{ paddingBlock: "0.25rem" }}
+                        >
+                          <Button
+                            onClick={() =>
+                              setVisiblePromotions((prev) => ({
+                                ...prev,
+                                [itemCode]: false,
+                              }))
+                            }
+                          >
+                            Close
+                          </Button>
+                        </FlexBox>
                       }
-                      setSelectedPromotionArticles={(updatedList) =>
-                        updateSelectedPromotionArticles(itemCode, updatedList)
+                      onClose={() =>
+                        setVisiblePromotions((prev) => ({
+                          ...prev,
+                          [itemCode]: false,
+                        }))
                       }
-                    />
-                  </Dialog>
-                </div>
-              ) : null;
-            })}
+                      header={
+                        <p className="w-full py-3 text-slate-600">
+                          Select Promotion Articles for{" "}
+                          <span className="text-emerald-500 font-medium">
+                            {itemCode}
+                          </span>
+                        </p>
+                      }
+                      open={visiblePromotions[itemCode] || false}
+                    >
+                      <Promotions
+                        promotionArticles={promotionArticles[itemCode] || []}
+                        setPromotionArticles={(updatedList) =>
+                          setPromotionArticles((prev) => ({
+                            ...prev,
+                            [itemCode]: updatedList,
+                          }))
+                        }
+                        selectedPromotionArticles={
+                          selectedPromotionArticles[itemCode] || []
+                        }
+                        setSelectedPromotionArticles={(updatedList) =>
+                          updateSelectedPromotionArticles(itemCode, updatedList)
+                        }
+                      />
+                    </Dialog>
+                  </div>
+                ) : null;
+              })}
+            </div>
+          </div>
+          <div className="space-y-2 w-full">
+            <h1 className="text-xl font-semibold text-amber-500">
+              Selected Promotions:
+            </h1>
+            <Table
+              headerRow={
+                <TableHeaderRow sticky className="bg-gray-100 h-11">
+                  <TableHeaderCell minWidth="200px">
+                    <span>Item Code</span>
+                  </TableHeaderCell>
+                  <TableHeaderCell minWidth="200px" width="auto">
+                    <span>Item Name</span>
+                  </TableHeaderCell>
+                  <TableHeaderCell minWidth="200px">
+                    <span>Family</span>
+                  </TableHeaderCell>
+                  <TableHeaderCell width="150px">
+                    <span>Total Quantity</span>
+                  </TableHeaderCell>
+                </TableHeaderRow>
+              }
+              className="divide-y divide-gray-200 border"
+            >
+              {orderArticles.map((promotionArticle, index) => {
+                return (
+                  <TableRow
+                    key={`${promotionArticle.ItemCode}-${index}`}
+                    className={`${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } hover:bg-stone-200 transition-colors duration-200`}
+                  >
+                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                      {promotionArticle.ItemCode}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                      {promotionArticle.ItemName}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                      {promotionArticle.U_PromoFamily}
+                    </TableCell>
+                    <TableCell className="px-4 py-2 whitespace-nowrap">
+                      {promotionArticle.Quantity}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </Table>
           </div>
         </div>
-        <div className="space-y-2 w-full">
-          <h1 className="text-xl font-semibold text-amber-500">
-            Selected Promotions:
-          </h1>
-          <Table
-            headerRow={
-              <TableHeaderRow sticky className="bg-gray-100 h-11">
-                <TableHeaderCell minWidth="200px">
-                  <span>Item Code</span>
-                </TableHeaderCell>
-                <TableHeaderCell minWidth="200px" width="auto">
-                  <span>Item Name</span>
-                </TableHeaderCell>
-                <TableHeaderCell minWidth="200px">
-                  <span>Family</span>
-                </TableHeaderCell>
-                <TableHeaderCell width="150px">
-                  <span>Total Quantity</span>
-                </TableHeaderCell>
-              </TableHeaderRow>
-            }
-            className="divide-y divide-gray-200 border"
+        <div className="w-full flex flex-col justify-center items-center gap-y-6">
+          <h1 className="text-4xl text-slate-600 font-bold">Clients</h1>
+          <DisplaySelectedClients
+            selectedClient={selectedClient}
+            setSelectedClient={(value) => setSelectedClient(value)}
+          />
+          <button
+            onClick={createOrder}
+            className="flex items-center gap-2 bg-teal-500 text-white hover:bg-teal-600 transition-colors"
           >
-            {aggregatedPromotions.map((promotionArticle, index) => {
-              return (
-                <TableRow
-                  key={`${promotionArticle.ItemCode}-${index}`}
-                  className={`${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  } hover:bg-stone-200 transition-colors duration-200`}
-                >
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {promotionArticle.ItemCode}
-                  </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {promotionArticle.ItemName}
-                  </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {promotionArticle.U_PromoFamily}
-                  </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {promotionArticle.Quantity}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </Table>
+            <span>{isOrderLoading ? "Creating" : "Create"} Order</span>
+            {isOrderLoading && (
+              <BusyIndicator
+                active={true}
+                delay={0}
+                size="M"
+                className="text-teal-100"
+              />
+            )}
+          </button>
         </div>
       </div>
     </>

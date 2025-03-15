@@ -78,19 +78,19 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
           <Table
             headerRow={
               <TableHeaderRow sticky className="bg-gray-100 h-11">
-                <TableHeaderCell minWidth="100px" width="100px">
-                  <span>Select</span>
+                <TableHeaderCell minWidth="45px">
+                  <span></span>
                 </TableHeaderCell>
-                <TableHeaderCell minWidth="200px" width="200px">
+                <TableHeaderCell minWidth="130px">
                   <span>Item Code</span>
                 </TableHeaderCell>
                 <TableHeaderCell minWidth="200px">
                   <span>Item Name</span>
                 </TableHeaderCell>
-                <TableHeaderCell minWidth="200px">
+                <TableHeaderCell minWidth="100px">
                   <span>Family</span>
                 </TableHeaderCell>
-                <TableHeaderCell maxWidth="200px" minWidth="100px">
+                <TableHeaderCell minWidth="120px">
                   <span>In Stock</span>
                 </TableHeaderCell>
               </TableHeaderRow>

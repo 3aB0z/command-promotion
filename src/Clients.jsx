@@ -9,7 +9,7 @@ import {
   TableHeaderCell,
 } from "@ui5/webcomponents-react";
 
-export default function Home() {
+export default function Clients() {
   const [clients, setClients] = useState([]);
 
   const isClintsFetched = clients.length === 0;
