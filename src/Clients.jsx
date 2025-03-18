@@ -36,7 +36,10 @@ export default function Clients() {
   }, [isClintsFetched]);
 
   return (
-    <div className="flex justify-center items-center p-4">
+    <div className="flex flex-col justify-center items-center p-4">
+      <h1 className="text-4xl font-bold text-center text-slate-600 mb-8">
+        Clients
+      </h1>
       {clients.length > 0 ? (
         <Table
           headerRow={

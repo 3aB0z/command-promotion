@@ -8,16 +8,18 @@ import {
   TableHeaderCell,
 } from "@ui5/webcomponents-react";
 
-export default function Articles({ selectedArticles, setSelectedArticles }) {
+export default function Articles({
+  selectedArticles,
+  setSelectedArticles,
+  selectedClientCardCode,
+}) {
   const [articles, setArticles] = useState([]);
 
   function handleArticleSelection(e, selectedArticle) {
     const deleteArticle = () => {
       setSelectedArticles((prv) => {
         return [
-          ...prv.filter(
-            (item) => item.ItemCode != selectedArticle.Items.ItemCode
-          ),
+          ...prv.filter((item) => item.ItemCode != selectedArticle.ItemCode),
         ];
       });
     };
@@ -27,9 +29,8 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
         return [
           ...prv,
           {
-            ...selectedArticle.Items,
-            InStock:
-              selectedArticle["Items/ItemWarehouseInfoCollection"].InStock,
+            ...selectedArticle,
+            InStock: selectedArticle.InStock,
             Quantity: 1,
           },
         ];
@@ -38,7 +39,7 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
 
     if (e.target.checked) {
       const isArticleSelected = selectedArticles.find(
-        (item) => item.ItemCode == selectedArticle.Items.ItemCode
+        (item) => item.ItemCode == selectedArticle.ItemCode
       );
       if (isArticleSelected) {
         deleteArticle();
@@ -52,24 +53,65 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
 
   useEffect(() => {
     async function fetchArticles() {
-      const WarehouseCode = "SC061";
-      const response = await axios.get(
-        `https://REDACTED_SAP_HOST:50000/b1s/v2/$crossjoin(Items,Items/ItemWarehouseInfoCollection)?$expand=Items($select=ItemCode,ItemName,U_Family),Items/ItemWarehouseInfoCollection($select=InStock)&$filter=Items/ItemWarehouseInfoCollection/WarehouseCode eq '${WarehouseCode}' and Items/ItemCode eq Items/ItemWarehouseInfoCollection/ItemCode and Items/ItemWarehouseInfoCollection/InStock gt 0`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
+      try {
+        const warehouseCode = "SC061";
+        const articlesResponse = await axios.get(
+          `https://REDACTED_SAP_HOST:50000/b1s/v2/$crossjoin(Items,Items/ItemWarehouseInfoCollection)?$expand=Items($select=ItemCode,ItemName,U_Family),Items/ItemWarehouseInfoCollection($select=InStock)&$filter=Items/ItemWarehouseInfoCollection/WarehouseCode eq '${warehouseCode}' and Items/ItemCode eq Items/ItemWarehouseInfoCollection/ItemCode and Items/ItemWarehouseInfoCollection/InStock gt 0`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+        async function fetchArticlePrice(article) {
+          const priceParams = {
+            ItemPriceParams: {
+              CardCode: selectedClientCardCode,
+              ItemCode: article.ItemCode,
+            },
+          };
+          const priceResponse = await axios.post(
+            `https://REDACTED_SAP_HOST:50000/b1s/v2/CompanyService_GetItemPrice`,
+            priceParams,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              withCredentials: true,
+            }
+          );
+          const priceInfo = {
+            Price: priceResponse.data.Price,
+            Currency: priceResponse.data.Currency,
+          };
+          return priceInfo;
         }
-      );
-      const data = await response.data.value;
+        const data = await Promise.all(
+          articlesResponse.data.value.map(async (item) => {
+            const articlePrice = await Promise.resolve(
+              fetchArticlePrice(item.Items)
+            );
+            return {
+              ItemCode: item.Items.ItemCode,
+              ItemName: item.Items.ItemName,
+              U_Family: item.Items.U_Family,
+              PriceInfo: articlePrice,
+              InStock: item["Items/ItemWarehouseInfoCollection"].InStock,
+            };
+          })
+        );
 
-      setArticles(data);
+        setArticles(data);
+      } catch (error) {
+        console.error(error);
+      }
     }
 
-    fetchArticles();
-  }, []);
+    selectedClientCardCode !== "" && fetchArticles();
+  }, [selectedClientCardCode]);
 
   return (
     <>
@@ -78,8 +120,24 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
           <Table
             headerRow={
               <TableHeaderRow sticky className="bg-gray-100 h-11">
-                <TableHeaderCell minWidth="45px">
-                  <span></span>
+                <TableHeaderCell minWidth="45px" horizontalAlign="Center">
+                  <span className="w-4 h-4">
+                    <input
+                      type="checkbox"
+                      onChange={(e) =>
+                        e.target.checked
+                          ? setSelectedArticles(
+                              articles.map((article) => ({
+                                ...article,
+                                Quantity: 1,
+                              }))
+                            )
+                          : setSelectedArticles([])
+                      }
+                      checked={selectedArticles.length === articles.length}
+                      className="w-full h-full"
+                    />
+                  </span>
                 </TableHeaderCell>
                 <TableHeaderCell minWidth="130px">
                   <span>Item Code</span>
@@ -90,6 +148,9 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
                 <TableHeaderCell minWidth="100px">
                   <span>Family</span>
                 </TableHeaderCell>
+                <TableHeaderCell minWidth="100px">
+                  <span>Price</span>
+                </TableHeaderCell>
                 <TableHeaderCell minWidth="120px">
                   <span>In Stock</span>
                 </TableHeaderCell>
@@ -99,33 +160,39 @@ export default function Articles({ selectedArticles, setSelectedArticles }) {
           >
             {articles.map((article, index) => {
               const isArticleSelected = selectedArticles.find(
-                (item) => item.ItemCode == article.Items.ItemCode
+                (item) => item.ItemCode == article.ItemCode
               );
               return (
                 <TableRow
-                  key={`${article.Items.ItemCode}-${article.Items.ItemName}`}
+                  key={article.ItemCode}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
-                    isArticleSelected && "bg-emerald-200/40"
+                    isArticleSelected && "bg-emerald-100/80"
                   } hover:bg-stone-200 transition-colors duration-200`}
                 >
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      onChange={(e) => handleArticleSelection(e, article)}
-                      checked={isArticleSelected ? true : false}
-                    />
+                    <span className="w-4 h-4">
+                      <input
+                        type="checkbox"
+                        onChange={(e) => handleArticleSelection(e, article)}
+                        checked={isArticleSelected ? true : false}
+                        className="w-full h-full"
+                      />
+                    </span>
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {article.Items.ItemCode}
+                    {article.ItemCode}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {article.Items.ItemName}
+                    {article.ItemName}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {article.Items.U_Family}
+                    {article.U_Family}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {article["Items/ItemWarehouseInfoCollection"].InStock}
+                    {article.PriceInfo.Price} {article.PriceInfo.Currency}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {article.InStock}
                   </TableCell>
                 </TableRow>
               );

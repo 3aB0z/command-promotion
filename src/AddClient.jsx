@@ -60,6 +60,9 @@ export default function AddClient() {
         className="flex w-96 flex-col space-y-3 bg-slate-50 px-6 py-4 rounded-lg"
       >
         <div className="flex flex-col space-y-1">
+          <h1 className="text-2xl text-center font-medium text-blue-600 mb-8 pt-2">
+            Add Client
+          </h1>
           <label htmlFor="cardCode">CardCode:</label>
           <input
             className="border border-slate-300 rounded"

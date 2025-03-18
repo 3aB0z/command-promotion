@@ -2,7 +2,7 @@ import { Button, Dialog, Icon } from "@ui5/webcomponents-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import profileImage from "../public/ProfileImage.png";
+import profileImage from "/src/assets/ProfileImage.png";
 
 export default function ClientDetails() {
   const [client, setClient] = useState({
@@ -58,13 +58,6 @@ export default function ClientDetails() {
   return (
     <>
       <div className="relative w-full flex justify-center">
-        <button
-          className="absolute top-0 left-0 flex justify-center items-center gap-1.5 hover:bg-gray-100"
-          onClick={() => navigate(-1)}
-        >
-          <Icon name="arrow-left" />
-          <span>Back</span>
-        </button>
         {client.CardCode !== "" && (
           <ul className="w-2/3 min-w-[600px] max-w-[800px] flex justify-between items-center gap-x-4 p-5">
             <div className="flex gap-4">
@@ -126,7 +119,7 @@ export default function ClientDetails() {
                   <div className="w-full h-full flex justify-end items-center gap-3 pt-2.5">
                     <button
                       onClick={deleteClient}
-                      className="bg-rose-500 text-white border-none py-1.5 hover:bg-rose-600"
+                      className="bg-rose-500 text-white border-none rounded-md py-1.5 hover:bg-rose-600"
                     >
                       Delete
                     </button>
@@ -134,7 +127,7 @@ export default function ClientDetails() {
                       onClick={function Js() {
                         setIsDeleteOpen(false);
                       }}
-                      className="text-rose-500 border border-rose-500 hover:bg-rose-50"
+                      className="text-rose-500 border border-rose-500 rounded-md hover:bg-rose-50"
                     >
                       Cancel
                     </Button>

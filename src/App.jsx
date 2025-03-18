@@ -1,12 +1,14 @@
 import "./App.css";
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Clients from "./Clients";
 import ClientDetails from "./ClientDetails";
 import { useEffect } from "react";
 import axios from "axios";
 import UpdateClientName from "./UpdateClientName";
-import AddArticles from "./AddArticles";
 import AddClient from "./AddClient";
+import CreateOrder from "./CreateOrder";
+import Navbar from "./Navbar";
+import Home from "./Home";
 
 function App() {
   // Auto Login
@@ -47,25 +49,15 @@ function App() {
   return (
     <>
       <div className="relative w-full h-screen flex flex-col justify-start items-center">
-        <nav className="fixed top-0 z-50 w-full h-11 flex justify-center items-center underline from-emerald-300 to-sky-400 bg-gradient-to-r space-x-6">
-          <Link to="/clients" className="text-white hover:text-slate-100">
-            Clients
-          </Link>
-          <Link to="/addClient" className="text-white hover:text-slate-100">
-            Create Client
-          </Link>
-          <Link to="/addArticles" className="text-white hover:text-slate-100">
-            Add Articles
-          </Link>
-        </nav>
-
+        <Navbar />
         <div className="flex justify-center items-center w-full px-5 pt-16 pb-5 min-w-full">
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/clients" element={<Clients />} />
             <Route path="/clients/:id" element={<ClientDetails />} />
             <Route path="/addClient" element={<AddClient />} />
             <Route path="/updateClient/:id" element={<UpdateClientName />} />
-            <Route path="/addArticles" element={<AddArticles />} />
+            <Route path="/createOrder" element={<CreateOrder />} />
           </Routes>
         </div>
       </div>
