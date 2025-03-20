@@ -6,15 +6,8 @@ import {
   Button,
   Dialog,
   FlexBox,
-  Icon,
-  Table,
-  TableCell,
-  TableHeaderCell,
-  TableHeaderRow,
-  TableRow,
-  Toast,
 } from "@ui5/webcomponents-react";
-import ClientsTable from "./ClientsTable";
+import Clients from "./Clients";
 import Popup from "./Popup";
 
 export default function OrderCreationForm({
@@ -22,6 +15,8 @@ export default function OrderCreationForm({
   setSelectedClient,
   selectedArticles,
   setSelectedArticles,
+  setPromotionArticles,
+  setSelectedPromotions,
   selectedPromotionArticles,
   searchPromotions,
   isPromotionLoading,
@@ -68,6 +63,14 @@ export default function OrderCreationForm({
             withCredentials: true,
           }
         );
+        setSelectedClient({
+          CardCode: "",
+          CardName: "",
+          CardType: "",
+        });
+        setSelectedArticles([]);
+        setPromotionArticles({});
+        setSelectedPromotions({});
         setOrderNotification({
           message: "Your order was created!",
           sucess: true,
@@ -144,7 +147,7 @@ export default function OrderCreationForm({
               }
               open={isClientsOpen}
             >
-              <ClientsTable
+              <Clients
                 selectedClient={selectedClient}
                 setSelectedClient={(value) => setSelectedClient(value)}
                 setIsClientsLoading={(value) => setIsClientsLoading(value)}

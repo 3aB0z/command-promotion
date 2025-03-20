@@ -114,7 +114,7 @@ export default function Articles({
       }
     }
 
-    selectedClient.CardCode !== "" && fetchArticles();
+    selectedClient.CardCode !== "" ? fetchArticles() : setArticles([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClient.CardCode]);
 

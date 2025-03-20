@@ -1,18 +1,20 @@
+import {
+  Table,
+  TableCell,
+  TableHeaderCell,
+  TableHeaderRow,
+  TableRow,
+} from "@ui5/webcomponents-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  Table,
-  TableRow,
-  TableCell,
-  TableHeaderRow,
-  TableHeaderCell,
-  BusyIndicator,
-} from "@ui5/webcomponents-react";
 
-export default function Clients() {
+export default function Clients({
+  selectedClient,
+  setSelectedClient,
+  setIsClientsLoading,
+}) {
   const [clients, setClients] = useState([]);
-  const [isClientsLoading, setIsClientsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchClients() {
@@ -28,7 +30,13 @@ export default function Clients() {
             withCredentials: true,
           }
         );
-        setClients(response.data.value);
+        const data =
+          response.data.value.map((item) => ({
+            CardCode: item.CardCode,
+            CardName: item.CardName,
+            CardType: item.CardType,
+          })) || [];
+        setClients(data);
       } catch (error) {
         console.error(error.message);
       } finally {
@@ -37,54 +45,81 @@ export default function Clients() {
     }
 
     fetchClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="flex flex-col justify-center items-center p-4">
-      <h1 className="text-4xl font-bold text-center text-slate-600 mb-8">
-        Clients
-      </h1>
-      {clients.length > 0 ? (
-        <Table
-          headerRow={
-            <TableHeaderRow sticky className="bg-gray-100 h-11">
-              <TableHeaderCell minWidth="200px">
-                <span>Card Code</span>
-              </TableHeaderCell>
-              <TableHeaderCell minWidth="200px" width="auto">
-                <span>Card Name</span>
-              </TableHeaderCell>
-              <TableHeaderCell minWidth="200px">
-                <span>Card Type</span>
-              </TableHeaderCell>
-              <TableHeaderCell width="150px">
-                <span>Details</span>
-              </TableHeaderCell>
-            </TableHeaderRow>
-          }
-          className="divide-y divide-gray-200 border"
-        >
-          {clients.map((client) => (
-            <TableRow key={client.CardCode}>
-              <TableCell>{client.CardCode}</TableCell>
-              <TableCell>{client.CardName}</TableCell>
-              <TableCell>{client.CardType}</TableCell>
-              <TableCell>
-                <Link
-                  to={`/clients/${client.CardCode}`}
-                  className="text-blue-500 hover:text-blue-700"
+    <>
+      <div className="flex justify-center items-center p-4">
+        {clients.length > 0 ? (
+          <Table
+            headerRow={
+              <TableHeaderRow sticky className="bg-gray-100 h-11">
+                <TableHeaderCell minWidth="45px">
+                  <span></span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="150px">
+                  <span>Card Code</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="250px">
+                  <span>Card Name</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="150px">
+                  <span>Card Type</span>
+                </TableHeaderCell>
+                <TableHeaderCell minWidth="100px">
+                  <span>Details</span>
+                </TableHeaderCell>
+              </TableHeaderRow>
+            }
+            className="divide-y divide-gray-200 border"
+          >
+            {clients.map((client, index) => {
+              const isClientSelected =
+                selectedClient.CardCode === client.CardCode;
+              return (
+                <TableRow
+                  key={client.CardCode}
+                  onClick={() => setSelectedClient(client)}
+                  className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
+                    isClientSelected && "bg-emerald-100/80"
+                  } hover:bg-stone-200 transition-colors duration-200`}
                 >
-                  Details
-                </Link>
-              </TableCell>
-            </TableRow>
-          ))}
-        </Table>
-      ) : isClientsLoading ? (
-        <BusyIndicator active={true} size="M" className="text-sky-500" />
-      ) : (
-        <span className="text-gray-500">Clients table is empty!</span>
-      )}
-    </div>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    <span className="w-4 h-4">
+                      <input
+                        type="radio"
+                        onChange={() => setSelectedClient(client)}
+                        checked={isClientSelected}
+                        className="w-full h-full"
+                      />
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {client.CardCode}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {client.CardName}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    {client.CardType}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                    <Link
+                      to={`/clients/${client.CardCode}`}
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      Details
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </Table>
+        ) : (
+          <div className="text-gray-500">Clients table is empty!</div>
+        )}
+      </div>
+    </>
   );
 }

@@ -1,14 +1,7 @@
 import "./App.css";
-import { Route, Routes } from "react-router-dom";
-import Clients from "./Clients";
-import ClientDetails from "./ClientDetails";
 import { useEffect } from "react";
 import axios from "axios";
-import UpdateClientName from "./UpdateClientName";
-import AddClient from "./AddClient";
 import CreateOrder from "./CreateOrder";
-import Navbar from "./Navbar";
-import Home from "./Home";
 
 function App() {
   useEffect(() => {
@@ -47,18 +40,8 @@ function App() {
 
   return (
     <>
-      <div className="relative w-full h-screen flex flex-col justify-start items-center">
-        <Navbar />
-        <div className="flex justify-center items-center w-full px-5 pt-16 pb-5 min-w-full">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/clients/:id" element={<ClientDetails />} />
-            <Route path="/addClient" element={<AddClient />} />
-            <Route path="/updateClient/:id" element={<UpdateClientName />} />
-            <Route path="/createOrder" element={<CreateOrder />} />
-          </Routes>
-        </div>
+      <div className="flex justify-center items-center w-full px-5 pt-16 pb-5 min-w-full">
+        <CreateOrder />
       </div>
     </>
   );

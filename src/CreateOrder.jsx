@@ -1,17 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  BusyIndicator,
-  Button,
-  Dialog,
-  FlexBox,
-  Icon,
-  Table,
-  TableCell,
-  TableHeaderCell,
-  TableHeaderRow,
-  TableRow,
-  Toast,
-} from "@ui5/webcomponents-react";
+import { Button, Dialog, FlexBox } from "@ui5/webcomponents-react";
 import DisplaySelectedArticles from "./DisplaySelectedArticles";
 import axios from "axios";
 import Promotions from "./Promotions";
@@ -161,6 +149,8 @@ export default function CreateOrder() {
             setSelectedClient={(value) => setSelectedClient(value)}
             selectedArticles={selectedArticles}
             setSelectedArticles={(value) => setSelectedArticles(value)}
+            setPromotionArticles={(value) => setPromotionArticles(value)}
+            setSelectedPromotions={(value) => setSelectedPromotions(value)}
             selectedPromotionArticles={[
               ...selectedArticles,
               ...selectedPromotionArticles,
