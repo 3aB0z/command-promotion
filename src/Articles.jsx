@@ -11,7 +11,8 @@ import {
 export default function Articles({
   selectedArticles,
   setSelectedArticles,
-  selectedClientCardCode,
+  selectedClient,
+  setIsArticlesLoading,
 }) {
   const [articles, setArticles] = useState([]);
 
@@ -30,7 +31,6 @@ export default function Articles({
           ...prv,
           {
             ...selectedArticle,
-            InStock: selectedArticle.InStock,
             Quantity: 1,
           },
         ];
@@ -53,6 +53,7 @@ export default function Articles({
 
   useEffect(() => {
     async function fetchArticles() {
+      setIsArticlesLoading(true);
       try {
         const warehouseCode = "SC061";
         const articlesResponse = await axios.get(
@@ -68,7 +69,7 @@ export default function Articles({
         async function fetchArticlePrice(article) {
           const priceParams = {
             ItemPriceParams: {
-              CardCode: selectedClientCardCode,
+              CardCode: selectedClient.CardCode,
               ItemCode: article.ItemCode,
             },
           };
@@ -105,13 +106,17 @@ export default function Articles({
         );
 
         setArticles(data);
+        setSelectedArticles([]);
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsArticlesLoading(false);
       }
     }
 
-    selectedClientCardCode !== "" && fetchArticles();
-  }, [selectedClientCardCode]);
+    selectedClient.CardCode !== "" && fetchArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClient.CardCode]);
 
   return (
     <>

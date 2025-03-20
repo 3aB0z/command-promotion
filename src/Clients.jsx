@@ -7,16 +7,17 @@ import {
   TableCell,
   TableHeaderRow,
   TableHeaderCell,
+  BusyIndicator,
 } from "@ui5/webcomponents-react";
 
 export default function Clients() {
   const [clients, setClients] = useState([]);
-
-  const isClintsFetched = clients.length === 0;
+  const [isClientsLoading, setIsClientsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchClients() {
       try {
+        setIsClientsLoading(true);
         const response = await axios.get(
           "https://REDACTED_SAP_HOST:50000/b1s/v2/BusinessPartners?$select=CardCode,CardName,CardType",
           {
@@ -30,10 +31,13 @@ export default function Clients() {
         setClients(response.data.value);
       } catch (error) {
         console.error(error.message);
+      } finally {
+        setIsClientsLoading(false);
       }
     }
+
     fetchClients();
-  }, [isClintsFetched]);
+  }, []);
 
   return (
     <div className="flex flex-col justify-center items-center p-4">
@@ -76,8 +80,10 @@ export default function Clients() {
             </TableRow>
           ))}
         </Table>
+      ) : isClientsLoading ? (
+        <BusyIndicator active={true} size="M" className="text-sky-500" />
       ) : (
-        <div className="text-gray-500">Clients table is empty!</div>
+        <span className="text-gray-500">Clients table is empty!</span>
       )}
     </div>
   );

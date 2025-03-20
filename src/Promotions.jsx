@@ -11,8 +11,8 @@ import { useEffect, useState } from "react";
 export default function Promotions({
   promotionArticles,
   setPromotionArticles,
-  selectedPromotionArticles,
-  setSelectedPromotionArticles,
+  selectedPromotions,
+  setSelectedPromotions,
 }) {
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
@@ -26,11 +26,11 @@ export default function Promotions({
       inputVal = allowedMax;
     }
     const newValue = inputVal;
-    const existing = selectedPromotionArticles.find(
+    const existing = selectedPromotions.find(
       (x) => x.ItemCode === selectedItem.ItemCode
     );
     const oldQty = existing ? existing.Quantity : 0;
-    const currentTotal = selectedPromotionArticles.reduce(
+    const currentTotal = selectedPromotions.reduce(
       (acc, cur) => acc + cur.Quantity,
       0
     );
@@ -42,34 +42,34 @@ export default function Promotions({
       setPromotionArticles(updatedPromotionArticles);
       if (newValue > 0) {
         if (existing) {
-          const updatedSelected = selectedPromotionArticles.map((x) =>
+          const updatedSelected = selectedPromotions.map((x) =>
             x.ItemCode === selectedItem.ItemCode
               ? { ...x, Quantity: newValue }
               : x
           );
-          setSelectedPromotionArticles(updatedSelected);
+          setSelectedPromotions(updatedSelected);
         } else {
-          setSelectedPromotionArticles([
-            ...selectedPromotionArticles,
+          setSelectedPromotions([
+            ...selectedPromotions,
             { ...selectedItem, Quantity: newValue },
           ]);
         }
       } else {
-        const filteredSelected = selectedPromotionArticles.filter(
+        const filteredSelected = selectedPromotions.filter(
           (x) => x.ItemCode !== selectedItem.ItemCode
         );
-        setSelectedPromotionArticles(filteredSelected);
+        setSelectedPromotions(filteredSelected);
       }
     }
   }
 
   useEffect(() => {
-    const total = selectedPromotionArticles.reduce(
+    const total = selectedPromotions.reduce(
       (acc, cur) => acc + cur.Quantity,
       0
     );
     setSelectedQuantity(total);
-  }, [selectedPromotionArticles]);
+  }, [selectedPromotions]);
 
   useEffect(() => {
     setRemainingQuantity(totalQuantity - selectedQuantity);
@@ -111,7 +111,7 @@ export default function Promotions({
             className="h-[448px]"
           >
             {promotionArticles.map((promotionArticle, index) => {
-              const isPromotionSelected = selectedPromotionArticles.some(
+              const isPromotionSelected = selectedPromotions.some(
                 (item) => item.ItemCode === promotionArticle.ItemCode
               );
               return (

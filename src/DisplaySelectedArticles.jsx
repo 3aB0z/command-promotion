@@ -8,13 +8,16 @@ import {
   TableRowAction,
 } from "@ui5/webcomponents-react";
 import "@ui5/webcomponents-icons/dist/AllIcons.js";
+import { useEffect, useState } from "react";
 
 export default function DisplaySelectedArticles({
   selectedArticles,
   setSelectedArticles,
   setPromotionArticles,
-  setSelectedPromotionArticles,
+  setSelectedPromotions,
 }) {
+  const [totalPrice, setTotalPrice] = useState(0);
+
   function deleteArticle(selectedItemCode) {
     setSelectedArticles((prv) => {
       return [...prv.filter((item) => item.ItemCode != selectedItemCode)];
@@ -26,7 +29,7 @@ export default function DisplaySelectedArticles({
       return newMap;
     });
 
-    setSelectedPromotionArticles((prev) => {
+    setSelectedPromotions((prev) => {
       const newMap = { ...prev };
       delete newMap[selectedItemCode];
       return newMap;
@@ -50,6 +53,13 @@ export default function DisplaySelectedArticles({
     }
   }
 
+  useEffect(() => {
+    const total = selectedArticles.reduce((pv, cv) => {
+      return (pv += cv.PriceInfo.Price * cv.Quantity);
+    }, 0);
+    setTotalPrice(total);
+  }, [selectedArticles]);
+
   return (
     <>
       <div className="space-y-2 w-full">
@@ -66,9 +76,6 @@ export default function DisplaySelectedArticles({
                 <span>Item Name</span>
               </TableHeaderCell>
               <TableHeaderCell minWidth="100px" width="auto">
-                <span>Family</span>
-              </TableHeaderCell>
-              <TableHeaderCell minWidth="100px" width="auto">
                 <span>Price</span>
               </TableHeaderCell>
               <TableHeaderCell minWidth="100px" width="auto">
@@ -77,14 +84,18 @@ export default function DisplaySelectedArticles({
               <TableHeaderCell width="150px">
                 <span>Quantity</span>
               </TableHeaderCell>
+              <TableHeaderCell minWidth="100px" width="130px">
+                <span>Total Price</span>
+              </TableHeaderCell>
             </TableHeaderRow>
           }
           rowActionCount={1}
-          className="max-w-full h-auto max-h-[300px] overflow-y-auto divide-y divide-gray-200 border"
+          className="max-w-full max-h-[350px] overflow-y-auto divide-y divide-gray-200 border"
         >
           {selectedArticles.map((article, index) => {
             return (
               <TableRow
+                key={`${article.ItemCode}-${article.ItemName}`}
                 actions={
                   <TableRowAction
                     icon="delete"
@@ -93,19 +104,15 @@ export default function DisplaySelectedArticles({
                     Delete
                   </TableRowAction>
                 }
-                key={`${article.ItemCode}-${article.ItemName}`}
                 className={`${
                   index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                } hover:bg-stone-200 transition-colors duration-200`}
+                } hover:bg-stone-200 transition-colors duration-200 group`}
               >
                 <TableCell className="px-4 py-2 whitespace-nowrap">
                   {article.ItemCode}
                 </TableCell>
                 <TableCell className="px-4 py-2 whitespace-nowrap">
                   {article.ItemName}
-                </TableCell>
-                <TableCell className="px-4 py-2 whitespace-nowrap">
-                  {article.U_Family}
                 </TableCell>
                 <TableCell className="px-4 py-2 whitespace-nowrap">
                   {article.PriceInfo.Price} {article.PriceInfo.Currency}
@@ -125,9 +132,27 @@ export default function DisplaySelectedArticles({
                     } rounded`}
                   />
                 </TableCell>
+                <TableCell className="px-4 py-2 whitespace-nowrap bg-emerald-50 group-hover:bg-emerald-100 border-x transition-colors">
+                  {(article.PriceInfo.Price * article.Quantity).toFixed(2)}{" "}
+                  {article.PriceInfo.Currency}
+                </TableCell>
               </TableRow>
             );
           })}
+          {selectedArticles.length !== 0 && (
+            <TableRow className="bg-emerald-50">
+              <TableCell className="px-4 py-2 whitespace-nowrap font-semibold">
+                Total
+              </TableCell>
+              <TableCell className="px-4 py-2 whitespace-nowrap" />
+              <TableCell className="px-4 py-2 whitespace-nowrap" />
+              <TableCell className="px-4 py-2 whitespace-nowrap" />
+              <TableCell className="px-4 py-2 whitespace-nowrap" />
+              <TableCell className="px-4 py-2 whitespace-nowrap bg-emerald-100 border-t-emerald-100 border-x transition-colors">
+                {totalPrice.toFixed(2)} DH
+              </TableCell>
+            </TableRow>
+          )}
         </Table>
       </div>
     </>

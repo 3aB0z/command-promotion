@@ -11,7 +11,6 @@ import Navbar from "./Navbar";
 import Home from "./Home";
 
 function App() {
-  // Auto Login
   useEffect(() => {
     async function loginToSAP() {
       try {
@@ -33,10 +32,10 @@ function App() {
           }
         );
 
-        return response.data;
+        console.log("Logged Successfull:", response);
       } catch (error) {
         console.error(
-          "SAP Login2 Error:",
+          "SAP Login Error:",
           error.response?.data || error.message
         );
         throw new Error("Failed to authenticate with SAP Service Layer");
