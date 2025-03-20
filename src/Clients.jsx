@@ -7,7 +7,6 @@ import {
 } from "@ui5/webcomponents-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 export default function Clients({
   selectedClient,
@@ -67,9 +66,6 @@ export default function Clients({
                 <TableHeaderCell minWidth="150px">
                   <span>Card Type</span>
                 </TableHeaderCell>
-                <TableHeaderCell minWidth="100px">
-                  <span>Details</span>
-                </TableHeaderCell>
               </TableHeaderRow>
             }
             className="divide-y divide-gray-200 border"
@@ -104,14 +100,7 @@ export default function Clients({
                   <TableCell className="px-4 py-2 whitespace-nowrap">
                     {client.CardType}
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    <Link
-                      to={`/clients/${client.CardCode}`}
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      Details
-                    </Link>
-                  </TableCell>
+                  <TableCell className="px-4 py-2 whitespace-nowrap"></TableCell>
                 </TableRow>
               );
             })}

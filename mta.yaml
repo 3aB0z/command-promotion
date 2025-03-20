@@ -1,6 +1,6 @@
 _schema-version: "3.2"
 ID: ext-vite-app
-version: 0.0.5
+version: 1.0.0
 provider: SAP
 modules:
   - name: vite-react-app
