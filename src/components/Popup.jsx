@@ -14,7 +14,7 @@ export default function Popup({ notification, setNotification }) {
           notification.sucess
             ? "bg-emerald-100 text-emerald-800 border-emerald-300"
             : "bg-rose-100 text-rose-800 border-rose-300"
-        } border px-3 py-2`}
+        } border pl-3 pr-5 py-2 mb-6`}
       >
         <div className="flex justify-center items-center gap-2">
           <button

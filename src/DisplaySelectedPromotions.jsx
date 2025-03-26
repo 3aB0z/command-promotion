@@ -7,13 +7,13 @@ import {
 } from "@ui5/webcomponents-react";
 
 export default function DisplaySelectedPromotions({
-  selectedPromotionArticles,
+  selectedPromotionArticles = [],
 }) {
   return (
     <>
       <div className="space-y-2 w-full">
-        <h1 className="text-xl font-semibold text-amber-500">
-          Selected Promotions:
+        <h1 className="text-xl font-semibold text-sky-500">
+          Promotions:
         </h1>
         <Table
           headerRow={
@@ -37,7 +37,7 @@ export default function DisplaySelectedPromotions({
           {selectedPromotionArticles.map((promotionArticle, index) => {
             return (
               <TableRow
-                key={`${promotionArticle.ItemCode}-${index}`}
+                key={promotionArticle.ItemCode}
                 className={`${
                   index % 2 === 0 ? "bg-white" : "bg-gray-50"
                 } hover:bg-stone-200 transition-colors duration-200`}

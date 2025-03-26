@@ -9,10 +9,10 @@ import {
 import { useEffect, useState } from "react";
 
 export default function Promotions({
-  promotionArticles,
+  promotionArticle,
   setPromotionArticles,
   selectedPromotions,
-  setSelectedPromotions,
+  updateSelectedPromotions,
 }) {
   const [totalQuantity, setTotalQuantity] = useState(0);
   const [selectedQuantity, setSelectedQuantity] = useState(0);
@@ -36,7 +36,7 @@ export default function Promotions({
     );
     const newTotal = currentTotal - oldQty + newValue;
     if (newValue >= 0 && newTotal <= totalQuantity) {
-      const updatedPromotionArticles = promotionArticles.map((x) =>
+      const updatedPromotionArticles = promotionArticle.map((x) =>
         x.ItemCode === selectedItem.ItemCode ? { ...x, Quantity: newValue } : x
       );
       setPromotionArticles(updatedPromotionArticles);
@@ -47,9 +47,9 @@ export default function Promotions({
               ? { ...x, Quantity: newValue }
               : x
           );
-          setSelectedPromotions(updatedSelected);
+          updateSelectedPromotions(updatedSelected);
         } else {
-          setSelectedPromotions([
+          updateSelectedPromotions([
             ...selectedPromotions,
             { ...selectedItem, Quantity: newValue },
           ]);
@@ -58,7 +58,7 @@ export default function Promotions({
         const filteredSelected = selectedPromotions.filter(
           (x) => x.ItemCode !== selectedItem.ItemCode
         );
-        setSelectedPromotions(filteredSelected);
+        updateSelectedPromotions(filteredSelected);
       }
     }
   }
@@ -76,16 +76,14 @@ export default function Promotions({
   }, [totalQuantity, selectedQuantity]);
 
   useEffect(() => {
-    if (promotionArticles.length > 0 && promotionArticles[0].U_QtyFree) {
-      setTotalQuantity(promotionArticles[0].U_QtyFree);
-    } else {
-      setTotalQuantity(3);
+    if (promotionArticle.length > 0 && promotionArticle[0].U_QtyFree) {
+      setTotalQuantity(promotionArticle[0].U_QtyFree);
     }
-  }, [promotionArticles]);
+  }, [promotionArticle]);
 
   return (
     <div className="flex flex-col justify-center items-start gap-y-4 w-full h-full">
-      {promotionArticles.length !== 0 ? (
+      {promotionArticle.length !== 0 ? (
         <>
           <h1 className="text-xl font-medium text-slate-700">
             Remaining Quantity:{" "}
@@ -110,7 +108,7 @@ export default function Promotions({
             }
             className="h-[448px]"
           >
-            {promotionArticles.map((promotionArticle, index) => {
+            {promotionArticle.map((promotionArticle, index) => {
               const isPromotionSelected = selectedPromotions.some(
                 (item) => item.ItemCode === promotionArticle.ItemCode
               );

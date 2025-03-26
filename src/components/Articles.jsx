@@ -114,7 +114,8 @@ export default function Articles({
       }
     }
 
-    selectedClient.CardCode !== "" ? fetchArticles() : setArticles([]);
+    setArticles([]);
+    selectedClient.CardCode && fetchArticles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClient.CardCode]);
 
@@ -151,9 +152,6 @@ export default function Articles({
                   <span>Item Name</span>
                 </TableHeaderCell>
                 <TableHeaderCell minWidth="100px">
-                  <span>Family</span>
-                </TableHeaderCell>
-                <TableHeaderCell minWidth="100px">
                   <span>Price</span>
                 </TableHeaderCell>
                 <TableHeaderCell minWidth="120px">
@@ -171,7 +169,7 @@ export default function Articles({
                 <TableRow
                   key={article.ItemCode}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
-                    isArticleSelected && "bg-emerald-100/80"
+                    isArticleSelected && "bg-emerald-200/40"
                   } hover:bg-stone-200 transition-colors duration-200`}
                 >
                   <TableCell className="px-4 py-2 whitespace-nowrap">
@@ -191,10 +189,10 @@ export default function Articles({
                     {article.ItemName}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {article.U_Family}
-                  </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {article.PriceInfo.Price} {article.PriceInfo.Currency}
+                    {article.PriceInfo.Price}{" "}
+                    {article.PriceInfo.Currency
+                      ? article.PriceInfo.Currency
+                      : "DH"}
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
                     {article.InStock}

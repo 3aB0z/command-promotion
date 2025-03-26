@@ -35,7 +35,10 @@ export default function Clients({
             CardName: item.CardName,
             CardType: item.CardType,
           })) || [];
-        setClients(data);
+        if (data.length !== 0) {
+          setClients(data);
+          setSelectedClient(data[0]);
+        }
       } catch (error) {
         console.error(error.message);
       } finally {
@@ -78,10 +81,10 @@ export default function Clients({
                   key={client.CardCode}
                   onClick={() => setSelectedClient(client)}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
-                    isClientSelected && "bg-emerald-100/80"
-                  } hover:bg-stone-200 transition-colors duration-200`}
+                    isClientSelected && "bg-emerald-200/40"
+                  } hover:bg-stone-200`}
                 >
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="pl-4 whitespace-nowrap">
                     <span className="w-4 h-4">
                       <input
                         type="radio"
@@ -91,16 +94,15 @@ export default function Clients({
                       />
                     </span>
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap">
                     {client.CardCode}
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap">
                     {client.CardName}
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="whitespace-nowrap">
                     {client.CardType}
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap"></TableCell>
                 </TableRow>
               );
             })}
