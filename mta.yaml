@@ -3,7 +3,7 @@ ID: command-promotion
 version: 2.0.0
 provider: SAP
 modules:
-  - name: Commande Promotion
+  - name: Commande-Promotion
     type: LightAddOn
     path: dist
     parameters:
