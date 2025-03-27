@@ -1,11 +1,5 @@
-import {
-  BusyIndicator,
-  Button,
-  Dialog,
-  FlexBox,
-} from "@ui5/webcomponents-react";
+import { BusyIndicator } from "@ui5/webcomponents-react";
 import DisplaySelectedArticles from "./DisplaySelectedArticles";
-import Promotions from "./components/Promotions";
 import DisplaySelectedClient from "./DisplaySelectedClient";
 import DisplaySelectedPromotions from "./DisplaySelectedPromotions";
 import Popup from "./components/Popup";
@@ -28,18 +22,6 @@ export default function CommandePromotion({
   setTotalPrice,
 }) {
   const [isPageLoading, setIsPageLoading] = useState(true);
-
-  function updateSelectedPromotions(itemCode, updatedList) {
-    setSelectedPromotions((prev) => {
-      if (updatedList.length === 0) {
-        const newObj = { ...prev };
-        delete newObj[itemCode];
-        return newObj;
-      } else {
-        return { ...prev, [itemCode]: updatedList };
-      }
-    });
-  }
 
   useEffect(() => {
     selectedClient.CardCode && setIsPageLoading(false);
@@ -69,81 +51,16 @@ export default function CommandePromotion({
           <DisplaySelectedArticles
             selectedClient={selectedClient}
             selectedArticles={selectedArticles}
-            setSelectedArticles={setSelectedArticles}
-            setPromotionArticles={setPromotionArticles}
-            setSelectedPromotions={setSelectedPromotions}
+            setSelectedArticles={(value) => setSelectedArticles(value)}
+            setPromotionArticles={(value) => setPromotionArticles(value)}
+            promotionArticles={promotionArticles}
+            visiblePromotions={visiblePromotions}
+            setVisiblePromotions={(value) => setVisiblePromotions(value)}
+            selectedPromotions={selectedPromotions}
+            setSelectedPromotions={(value) => setSelectedPromotions(value)}
             setNotification={(value) => setNotification(value)}
             setTotalPrice={(value) => setTotalPrice(value)}
           />
-          <div className="w-full flex justify-end items-center flex-wrap gap-3">
-            {Object.keys(promotionArticles).map((itemCode) => {
-              const isPromotionArticles = promotionArticles[itemCode];
-              return isPromotionArticles.length > 0 ? (
-                <div key={itemCode}>
-                  <Button
-                    onClick={() =>
-                      setVisiblePromotions((prev) => ({
-                        ...prev,
-                        [itemCode]: true,
-                      }))
-                    }
-                    className="border text-sky-500 text-sm py-1 bg-sky-50 border-sky-500 hover:bg-sky-100 hover:text-sky-600 hover:border-sky-600 transition-colors"
-                  >
-                    {itemCode} promotions
-                  </Button>
-                  <Dialog
-                    footer={
-                      <FlexBox
-                        fitContainer
-                        justifyContent="End"
-                        style={{ paddingBlock: "0.25rem" }}
-                      >
-                        <Button
-                          onClick={() =>
-                            setVisiblePromotions((prev) => ({
-                              ...prev,
-                              [itemCode]: false,
-                            }))
-                          }
-                        >
-                          Close
-                        </Button>
-                      </FlexBox>
-                    }
-                    onClose={() =>
-                      setVisiblePromotions((prev) => ({
-                        ...prev,
-                        [itemCode]: false,
-                      }))
-                    }
-                    header={
-                      <p className="w-full py-3 text-slate-600">
-                        Promotions for{" "}
-                        <span className="text-emerald-500 font-medium">
-                          {itemCode}
-                        </span>
-                      </p>
-                    }
-                    open={visiblePromotions[itemCode] || false}
-                  >
-                    <Promotions
-                      promotionArticle={promotionArticles[itemCode] || []}
-                      setPromotionArticles={(updatedList) =>
-                        setPromotionArticles((prev) => ({
-                          ...prev,
-                          [itemCode]: updatedList,
-                        }))
-                      }
-                      selectedPromotions={selectedPromotions[itemCode] || []}
-                      updateSelectedPromotions={(updatedList) =>
-                        updateSelectedPromotions(itemCode, updatedList)
-                      }
-                    />
-                  </Dialog>
-                </div>
-              ) : null;
-            })}
-          </div>
           <DisplaySelectedPromotions
             selectedPromotionArticles={selectedPromotionArticles}
           />

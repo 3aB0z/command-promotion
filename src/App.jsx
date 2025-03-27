@@ -109,13 +109,13 @@ function App() {
         setPromotionArticles(nonEmptyPromotions);
         setSelectedPromotions({});
         setNotification({
-          message: "Promotions was found!",
+          message: "Promotions found!",
           sucess: true,
           visible: true,
         });
       } else {
         setNotification({
-          message: "No promotions was found!",
+          message: "No promotions found!",
           sucess: false,
           visible: true,
         });
@@ -132,57 +132,53 @@ function App() {
     }
   }
 
-  function createOrder() {
-    async function create() {
-      setIsOrderLoading(true);
-      const documentLines = [
-        ...selectedArticles,
-        ...selectedPromotionArticles,
-      ].map((article) => {
-        return {
-          ItemCode: article.ItemCode,
-          Quantity: article.Quantity,
-          UnitPrice: article.PriceInfo.Price,
-        };
-      });
-      const order = {
-        CardCode: selectedClient.CardCode,
-        DocDueDate: new Date(),
-        DocumentLines: documentLines,
+  async function createOrder() {
+    setIsOrderLoading(true);
+    const documentLines = [
+      ...selectedArticles,
+      ...selectedPromotionArticles,
+    ].map((article) => {
+      return {
+        ItemCode: article.ItemCode,
+        Quantity: article.Quantity,
+        UnitPrice: article.PriceInfo.Price,
       };
+    });
+    const order = {
+      CardCode: selectedClient.CardCode,
+      DocDueDate: new Date(),
+      DocumentLines: documentLines,
+    };
 
-      try {
-        const response = await axios.post(
-          "https://REDACTED_SAP_HOST:50000/b1s/v2/Orders",
-          order,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
-        );
-        cancel();
-        setNotification({
-          message: "Your order was created!",
-          sucess: true,
-          visible: true,
-        });
-        console.log("Order Created Sucessfully: ", response);
-      } catch (error) {
-        setNotification({
-          message: error.response.data.error.message,
-          sucess: false,
-          visible: true,
-        });
-        console.error(error.response.data.error.message);
-      } finally {
-        setIsOrderLoading(false);
-      }
+    try {
+      const response = await axios.post(
+        "https://REDACTED_SAP_HOST:50000/b1s/v2/Orders",
+        order,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      cancel();
+      setNotification({
+        message: "Your order was created!",
+        sucess: true,
+        visible: true,
+      });
+      console.log("Order Created Sucessfully: ", response);
+    } catch (error) {
+      setNotification({
+        message: error.response.data.error.message,
+        sucess: false,
+        visible: true,
+      });
+      console.error(error.response.data.error.message);
+    } finally {
+      setIsOrderLoading(false);
     }
-
-    create();
   }
 
   function cancel() {
@@ -215,11 +211,7 @@ function App() {
 
         console.log("Logged Successfull:", response);
       } catch (error) {
-        console.error(
-          "SAP Login Error:",
-          error.response?.data || error.message
-        );
-        throw new Error("Failed to authenticate with SAP Service Layer");
+        console.error("SAP Login Error:", error);
       }
     }
 
@@ -239,22 +231,20 @@ function App() {
           headerArea={
             <DynamicPageHeader className="bg-[#3c5971] pb-6">
               <div className="flex gap-10">
-                <ul>
-                  <li className="text-slate-200 ml-3">Client</li>
-                  <Button disabled={!selectedClient.CardCode}>
-                    <div className="flex items-center">
-                      <Icon
-                        name="feeder-arrow"
-                        className="w-5 h-5 text-amber-600"
-                      />
-                      <span className="text-blue-300 text-sm custom-text-shadow">
-                        {selectedClient.CardCode
-                          ? selectedClient.CardCode
-                          : "no client selected"}
-                      </span>
-                    </div>
-                  </Button>
-                  <li className="text-white ml-3 font-medium custom-text-shadow">
+                <ul className="flex flex-col gap-1">
+                  <li className="text-slate-200 ml-1">Client</li>
+                  <li className="flex items-center">
+                    <Icon
+                      name="feeder-arrow"
+                      className="w-5 h-5 text-amber-600"
+                    />
+                    <span className="text-blue-300 text-sm custom-text-shadow">
+                      {selectedClient.CardCode
+                        ? selectedClient.CardCode
+                        : "no client selected"}
+                    </span>
+                  </li>
+                  <li className="text-white ml-1 font-medium custom-text-shadow">
                     {selectedClient?.CardName}
                   </li>
                 </ul>
@@ -339,7 +329,7 @@ function App() {
                   className="text-white text-2xl"
                   style={{ textShadow: "none" }}
                 >
-                  Command Promotion
+                  Commande Promotion
                 </h3>
               }
               snappedHeading={
@@ -347,7 +337,7 @@ function App() {
                   className="text-white text-2xl"
                   style={{ textShadow: "none" }}
                 >
-                  Command Promotion
+                  Commande Promotion
                 </h3>
               }
               actionsBar={

@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 
 export default function Promotions({
-  promotionArticle,
+  promotionArticles,
   setPromotionArticles,
   selectedPromotions,
   updateSelectedPromotions,
@@ -36,7 +36,7 @@ export default function Promotions({
     );
     const newTotal = currentTotal - oldQty + newValue;
     if (newValue >= 0 && newTotal <= totalQuantity) {
-      const updatedPromotionArticles = promotionArticle.map((x) =>
+      const updatedPromotionArticles = promotionArticles.map((x) =>
         x.ItemCode === selectedItem.ItemCode ? { ...x, Quantity: newValue } : x
       );
       setPromotionArticles(updatedPromotionArticles);
@@ -76,39 +76,36 @@ export default function Promotions({
   }, [totalQuantity, selectedQuantity]);
 
   useEffect(() => {
-    if (promotionArticle.length > 0 && promotionArticle[0].U_QtyFree) {
-      setTotalQuantity(promotionArticle[0].U_QtyFree);
+    if (promotionArticles.length > 0 && promotionArticles[0].U_QtyFree) {
+      setTotalQuantity(promotionArticles[0].U_QtyFree);
     }
-  }, [promotionArticle]);
+  }, [promotionArticles]);
 
   return (
-    <div className="flex flex-col justify-center items-start gap-y-4 w-full h-full">
-      {promotionArticle.length !== 0 ? (
-        <>
-          <h1 className="text-xl font-medium text-slate-700">
+    <>
+      {promotionArticles.length !== 0 ? (
+        <div className="flex flex-col justify-center w-full h-full gap-3">
+          <h1 className="text-lg font-medium text-slate-700">
             Remaining Quantity:{" "}
             <span className="text-emerald-500">{remainingQuantity}</span>
           </h1>
           <Table
             headerRow={
-              <TableHeaderRow sticky className="bg-gray-100 h-11">
+              <TableHeaderRow sticky className="bg-gray-100">
                 <TableHeaderCell minWidth="200px">
                   <span>Item Code</span>
                 </TableHeaderCell>
                 <TableHeaderCell minWidth="200px" width="auto">
                   <span>Item Name</span>
                 </TableHeaderCell>
-                <TableHeaderCell minWidth="200px">
-                  <span>Family</span>
-                </TableHeaderCell>
                 <TableHeaderCell width="150px">
                   <span>Quantity</span>
                 </TableHeaderCell>
               </TableHeaderRow>
             }
-            className="h-[448px]"
+            className="h-[400px] divide-y divide-gray-200 border overflow-y-auto"
           >
-            {promotionArticle.map((promotionArticle, index) => {
+            {promotionArticles.map((promotionArticle, index) => {
               const isPromotionSelected = selectedPromotions.some(
                 (item) => item.ItemCode === promotionArticle.ItemCode
               );
@@ -116,19 +113,16 @@ export default function Promotions({
                 <TableRow
                   key={promotionArticle.ItemCode}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
-                    isPromotionSelected && "bg-emerald-100"
+                    isPromotionSelected && "bg-emerald-300/20"
                   } hover:bg-stone-200 transition-colors duration-200`}
                 >
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="px-4 py-1.5 whitespace-nowrap">
                     {promotionArticle.ItemCode}
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="px-4 py-1.5 whitespace-nowrap">
                     {promotionArticle.ItemName}
                   </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    {promotionArticle.U_PromoFamily}
-                  </TableCell>
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
+                  <TableCell className="px-4 py-1.5 whitespace-nowrap">
                     <StepInput
                       onValueStateChange={(e) =>
                         handleQuantityChange(e, promotionArticle)
@@ -144,12 +138,12 @@ export default function Promotions({
               );
             })}
           </Table>
-        </>
+        </div>
       ) : (
         <span className="p-4 text-center text-gray-500">
-          Promotion articles table is empty!
+          There is no promotion articles!
         </span>
       )}
-    </div>
+    </>
   );
 }

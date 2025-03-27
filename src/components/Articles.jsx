@@ -6,6 +6,7 @@ import {
   Table,
   TableHeaderRow,
   TableHeaderCell,
+  CheckBox,
 } from "@ui5/webcomponents-react";
 
 export default function Articles({
@@ -54,6 +55,7 @@ export default function Articles({
   useEffect(() => {
     async function fetchArticles() {
       setIsArticlesLoading(true);
+      setSelectedArticles([]);
       try {
         const warehouseCode = "SC061";
         const articlesResponse = await axios.get(
@@ -106,7 +108,6 @@ export default function Articles({
         );
 
         setArticles(data);
-        setSelectedArticles([]);
       } catch (error) {
         console.error(error);
       } finally {
@@ -125,25 +126,21 @@ export default function Articles({
         {articles.length !== 0 ? (
           <Table
             headerRow={
-              <TableHeaderRow sticky className="bg-gray-100 h-11">
+              <TableHeaderRow sticky className="bg-gray-100">
                 <TableHeaderCell minWidth="45px" horizontalAlign="Center">
-                  <span className="w-4 h-4">
-                    <input
-                      type="checkbox"
-                      onChange={(e) =>
-                        e.target.checked
-                          ? setSelectedArticles(
-                              articles.map((article) => ({
-                                ...article,
-                                Quantity: 1,
-                              }))
-                            )
-                          : setSelectedArticles([])
-                      }
-                      checked={selectedArticles.length === articles.length}
-                      className="w-full h-full"
-                    />
-                  </span>
+                  <CheckBox
+                    onChange={(e) =>
+                      e.target.checked
+                        ? setSelectedArticles(
+                            articles.map((article) => ({
+                              ...article,
+                              Quantity: 1,
+                            }))
+                          )
+                        : setSelectedArticles([])
+                    }
+                    checked={selectedArticles.length === articles.length}
+                  />
                 </TableHeaderCell>
                 <TableHeaderCell minWidth="130px">
                   <span>Item Code</span>
@@ -159,7 +156,7 @@ export default function Articles({
                 </TableHeaderCell>
               </TableHeaderRow>
             }
-            className="h-[448px]"
+            className="h-[448px] divide-y divide-gray-200 border"
           >
             {articles.map((article, index) => {
               const isArticleSelected = selectedArticles.find(
@@ -169,18 +166,14 @@ export default function Articles({
                 <TableRow
                   key={article.ItemCode}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
-                    isArticleSelected && "bg-emerald-200/40"
+                    isArticleSelected && "bg-emerald-300/20"
                   } hover:bg-stone-200 transition-colors duration-200`}
                 >
-                  <TableCell className="px-4 py-2 whitespace-nowrap">
-                    <span className="w-4 h-4">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => handleArticleSelection(e, article)}
-                        checked={isArticleSelected ? true : false}
-                        className="w-full h-full"
-                      />
-                    </span>
+                  <TableCell className="whitespace-nowrap">
+                    <CheckBox
+                      onChange={(e) => handleArticleSelection(e, article)}
+                      checked={isArticleSelected ? true : false}
+                    />
                   </TableCell>
                   <TableCell className="px-4 py-2 whitespace-nowrap">
                     {article.ItemCode}

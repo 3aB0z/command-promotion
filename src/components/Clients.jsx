@@ -1,4 +1,5 @@
 import {
+  RadioButton,
   Table,
   TableCell,
   TableHeaderCell,
@@ -52,11 +53,11 @@ export default function Clients({
 
   return (
     <>
-      <div className="flex justify-center items-center p-4">
+      <div className="flex justify-center items-center w-full h-full">
         {clients.length > 0 ? (
           <Table
             headerRow={
-              <TableHeaderRow sticky className="bg-gray-100 h-11">
+              <TableHeaderRow sticky className="bg-gray-100">
                 <TableHeaderCell minWidth="45px">
                   <span></span>
                 </TableHeaderCell>
@@ -71,7 +72,7 @@ export default function Clients({
                 </TableHeaderCell>
               </TableHeaderRow>
             }
-            className="divide-y divide-gray-200 border"
+            className="h-[448px] divide-y divide-gray-200 border"
           >
             {clients.map((client, index) => {
               const isClientSelected =
@@ -81,18 +82,14 @@ export default function Clients({
                   key={client.CardCode}
                   onClick={() => setSelectedClient(client)}
                   className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} ${
-                    isClientSelected && "bg-emerald-200/40"
+                    isClientSelected && "bg-emerald-300/20"
                   } hover:bg-stone-200`}
                 >
-                  <TableCell className="pl-4 whitespace-nowrap">
-                    <span className="w-4 h-4">
-                      <input
-                        type="radio"
-                        onChange={() => setSelectedClient(client)}
-                        checked={isClientSelected}
-                        className="w-full h-full"
-                      />
-                    </span>
+                  <TableCell>
+                    <RadioButton
+                      onChange={() => setSelectedClient(client)}
+                      checked={isClientSelected}
+                    />
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
                     {client.CardCode}

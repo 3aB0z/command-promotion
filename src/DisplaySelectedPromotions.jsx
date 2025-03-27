@@ -7,14 +7,12 @@ import {
 } from "@ui5/webcomponents-react";
 
 export default function DisplaySelectedPromotions({
-  selectedPromotionArticles = [],
+  selectedPromotionArticles,
 }) {
   return (
     <>
       <div className="space-y-2 w-full">
-        <h1 className="text-xl font-semibold text-sky-500">
-          Promotions:
-        </h1>
+        <h1 className="text-xl font-semibold text-sky-500">Promotions:</h1>
         <Table
           headerRow={
             <TableHeaderRow sticky className="bg-gray-100 h-11">
