@@ -8,14 +8,16 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 3000,
-      proxy: {
-        "/b1s": {
-          target: env.VITE_SAP_API_TARGET,
-          changeOrigin: true,
-          secure: false,
-          cookieDomainRewrite: "",
-        },
-      },
+      proxy: env.VITE_SAP_API_TARGET
+        ? {
+            "/b1s": {
+              target: env.VITE_SAP_API_TARGET,
+              changeOrigin: true,
+              secure: false,
+              cookieDomainRewrite: "",
+            },
+          }
+        : {},
     },
     base: "./",
   };

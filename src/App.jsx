@@ -14,41 +14,14 @@ import {
 import Popup from "./components/Popup";
 import { SAP_API_URL } from "./config";
 
-let sapLoginRequest;
-
-function loginToSAP() {
-  if (!sapLoginRequest) {
-    const loginData = {
-      CompanyDB: "REDACTED_COMPANY_DATABASE",
-      UserName: "REDACTED_USERNAME",
-      Password: "REDACTED_CREDENTIAL",
-    };
-
-    sapLoginRequest = axios
-      .post(`${SAP_API_URL}/Login`, loginData, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (!response.data?.SessionId) {
-          throw new Error("SAP login response did not include a session.");
-        }
-        return response;
-      })
-      .catch((error) => {
-        sapLoginRequest = undefined;
-        throw error;
-      });
-  }
-
-  return sapLoginRequest;
-}
-
 function App() {
-  const [loginState, setLoginState] = useState("loading");
+  const [loginState, setLoginState] = useState("idle");
+  const [loginError, setLoginError] = useState("");
+  const [credentials, setCredentials] = useState({
+    CompanyDB: "",
+    UserName: "",
+    Password: "",
+  });
   const [selectedClient, setSelectedClient] = useState({
     CardCode: "",
     CardName: "",
@@ -83,6 +56,36 @@ function App() {
 
   const isSelectedArticlesAllowed =
     selectedArticles.length !== 0 && selectedClient.CardCode;
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    setLoginState("loading");
+    setLoginError("");
+
+    try {
+      const response = await axios.post(`${SAP_API_URL}/Login`, credentials, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
+
+      if (!response.data?.SessionId) {
+        throw new Error("SAP login response did not include a session.");
+      }
+
+      setCredentials({ CompanyDB: "", UserName: "", Password: "" });
+      setLoginState("authenticated");
+    } catch (error) {
+      setLoginError(
+        error.response?.data?.error?.message ||
+          error.message ||
+          "SAP login failed.",
+      );
+      setLoginState("idle");
+    }
+  }
 
   async function searchPromotions() {
     setIsPromotionLoading(true);
@@ -222,37 +225,68 @@ function App() {
   }
 
   useEffect(() => {
-    let isActive = true;
-
-    loginToSAP()
-      .then((response) => {
-        console.log("Logged Successfully:", response);
-        if (isActive) setLoginState("authenticated");
-      })
-      .catch((error) => {
-        console.error("SAP Login Error:", error);
-        if (isActive) setLoginState("error");
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  useEffect(() => {
     cancel();
   }, [selectedClient.CardCode]);
 
   if (loginState !== "authenticated") {
     return (
-      <div className="flex h-screen items-center justify-center">
-        {loginState === "loading" ? (
-          <BusyIndicator active delay={0} size="M" />
-        ) : (
-          <p className="text-rose-700">
-            SAP login failed. Reload the page to try again.
-          </p>
-        )}
+      <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+        <form
+          onSubmit={handleLogin}
+          className="flex w-full max-w-sm flex-col gap-4 rounded border bg-white p-6 shadow-sm"
+        >
+          <h1 className="text-xl font-semibold text-slate-800">SAP Sign In</h1>
+          <label className="flex flex-col gap-1 text-sm text-slate-700">
+            Company database
+            <input
+              required
+              autoComplete="organization"
+              value={credentials.CompanyDB}
+              onChange={(event) =>
+                setCredentials((current) => ({
+                  ...current,
+                  CompanyDB: event.target.value,
+                }))
+              }
+              className="rounded border px-3 py-2 bg-slate-50"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-700">
+            Username
+            <input
+              required
+              autoComplete="username"
+              value={credentials.UserName}
+              onChange={(event) =>
+                setCredentials((current) => ({
+                  ...current,
+                  UserName: event.target.value,
+                }))
+              }
+              className="rounded border px-3 py-2 bg-slate-50"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-700">
+            Password
+            <input
+              required
+              type="password"
+              autoComplete="current-password"
+              value={credentials.Password}
+              onChange={(event) =>
+                setCredentials((current) => ({
+                  ...current,
+                  Password: event.target.value,
+                }))
+              }
+              className="rounded border px-3 py-2 bg-slate-50"
+            />
+          </label>
+          {loginError && <p className="text-sm text-rose-700">{loginError}</p>}
+          <Button type="Submit" disabled={loginState === "loading"}>
+            {loginState === "loading" ? "Signing in..." : "Sign in"}
+          </Button>
+        </form>
       </div>
     );
   }
