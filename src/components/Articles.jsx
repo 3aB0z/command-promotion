@@ -8,6 +8,7 @@ import {
   TableHeaderCell,
   CheckBox,
 } from "@ui5/webcomponents-react";
+import { SAP_API_URL } from "../config";
 
 export default function Articles({
   selectedArticles,
@@ -40,7 +41,7 @@ export default function Articles({
 
     if (e.target.checked) {
       const isArticleSelected = selectedArticles.find(
-        (item) => item.ItemCode == selectedArticle.ItemCode
+        (item) => item.ItemCode == selectedArticle.ItemCode,
       );
       if (isArticleSelected) {
         deleteArticle();
@@ -59,14 +60,14 @@ export default function Articles({
       try {
         const warehouseCode = "SC061";
         const articlesResponse = await axios.get(
-          `https://REDACTED_SAP_HOST:50000/b1s/v2/$crossjoin(Items,Items/ItemWarehouseInfoCollection)?$expand=Items($select=ItemCode,ItemName,U_Family),Items/ItemWarehouseInfoCollection($select=InStock)&$filter=Items/ItemWarehouseInfoCollection/WarehouseCode eq '${warehouseCode}' and Items/ItemCode eq Items/ItemWarehouseInfoCollection/ItemCode and Items/ItemWarehouseInfoCollection/InStock gt 0`,
+          `${SAP_API_URL}/$crossjoin(Items,Items/ItemWarehouseInfoCollection)?$expand=Items($select=ItemCode,ItemName,U_Family),Items/ItemWarehouseInfoCollection($select=InStock)&$filter=Items/ItemWarehouseInfoCollection/WarehouseCode eq '${warehouseCode}' and Items/ItemCode eq Items/ItemWarehouseInfoCollection/ItemCode and Items/ItemWarehouseInfoCollection/InStock gt 0`,
           {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
             withCredentials: true,
-          }
+          },
         );
         async function fetchArticlePrice(article) {
           const priceParams = {
@@ -76,7 +77,7 @@ export default function Articles({
             },
           };
           const priceResponse = await axios.post(
-            `https://REDACTED_SAP_HOST:50000/b1s/v2/CompanyService_GetItemPrice`,
+            `${SAP_API_URL}/CompanyService_GetItemPrice`,
             priceParams,
             {
               headers: {
@@ -84,7 +85,7 @@ export default function Articles({
                 Accept: "application/json",
               },
               withCredentials: true,
-            }
+            },
           );
           const priceInfo = {
             Price: priceResponse.data.Price,
@@ -95,7 +96,7 @@ export default function Articles({
         const data = await Promise.all(
           articlesResponse.data.value.map(async (item) => {
             const articlePrice = await Promise.resolve(
-              fetchArticlePrice(item.Items)
+              fetchArticlePrice(item.Items),
             );
             return {
               ItemCode: item.Items.ItemCode,
@@ -104,7 +105,7 @@ export default function Articles({
               PriceInfo: articlePrice,
               InStock: item["Items/ItemWarehouseInfoCollection"].InStock,
             };
-          })
+          }),
         );
 
         setArticles(data);
@@ -115,7 +116,6 @@ export default function Articles({
       }
     }
 
-    setArticles([]);
     selectedClient.CardCode && fetchArticles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClient.CardCode]);
@@ -135,7 +135,7 @@ export default function Articles({
                             articles.map((article) => ({
                               ...article,
                               Quantity: 1,
-                            }))
+                            })),
                           )
                         : setSelectedArticles([])
                     }
@@ -160,7 +160,7 @@ export default function Articles({
           >
             {articles.map((article, index) => {
               const isArticleSelected = selectedArticles.find(
-                (item) => item.ItemCode == article.ItemCode
+                (item) => item.ItemCode == article.ItemCode,
               );
               return (
                 <TableRow

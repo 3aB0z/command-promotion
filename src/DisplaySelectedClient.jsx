@@ -11,6 +11,7 @@ import {
 import Clients from "./components/Clients";
 import { useState } from "react";
 import axios from "axios";
+import { SAP_API_URL } from "./config";
 
 export default function DisplaySelectedClient({
   selectedClient,
@@ -24,14 +25,14 @@ export default function DisplaySelectedClient({
     if (!value) return;
     try {
       const response = await axios.get(
-        `https://REDACTED_SAP_HOST:50000/b1s/v2/BusinessPartners?$select=CardCode,CardName,CardType&$filter=CardCode eq '${value}'`,
+        `${SAP_API_URL}/BusinessPartners?$select=CardCode,CardName,CardType&$filter=CardCode eq '${value}'`,
         {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
           withCredentials: true,
-        }
+        },
       );
 
       if (response.data.value.length === 0) {

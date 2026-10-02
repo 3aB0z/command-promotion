@@ -1,4 +1,4 @@
-import { Avatar, Bar, Button, Icon, Link } from "@ui5/webcomponents-react";
+import { Avatar, Bar, Button, Icon } from "@ui5/webcomponents-react";
 import SAPBusinessOneLogo from "../assets/SAPBusinessOneLogo.png";
 
 export default function Navbar() {
@@ -9,17 +9,11 @@ export default function Navbar() {
         design="Header"
         startContent={
           <span className="flex gap-3">
-            <Link
-              design="Default"
-              href="https://REDACTED_SAP_HOST/webx/index.html#Shell-home"
-              className="flex justify-center items-center"
-            >
-              <img
-                src={SAPBusinessOneLogo}
-                alt="SAP Business One Logo"
-                width={100}
-              />
-            </Link>
+            <img
+              src={SAPBusinessOneLogo}
+              alt="SAP Business One Logo"
+              width={100}
+            />
           </span>
         }
         endContent={

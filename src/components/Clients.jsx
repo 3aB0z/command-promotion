@@ -8,6 +8,7 @@ import {
 } from "@ui5/webcomponents-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { SAP_API_URL } from "../config";
 
 export default function Clients({
   selectedClient,
@@ -21,14 +22,14 @@ export default function Clients({
       try {
         setIsClientsLoading(true);
         const response = await axios.get(
-          "https://REDACTED_SAP_HOST:50000/b1s/v2/BusinessPartners?$select=CardCode,CardName,CardType",
+          `${SAP_API_URL}/BusinessPartners?$select=CardCode,CardName,CardType`,
           {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
             withCredentials: true,
-          }
+          },
         );
         const data =
           response.data.value.map((item) => ({

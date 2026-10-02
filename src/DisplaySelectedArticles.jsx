@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import Articles from "./components/Articles";
 import axios from "axios";
 import Promotions from "./components/Promotions";
+import { SAP_API_URL } from "./config";
 
 export default function DisplaySelectedArticles({
   selectedClient,
@@ -43,7 +44,7 @@ export default function DisplaySelectedArticles({
   function deleteArticle(selectedItemCode) {
     if (selectedItemCode) {
       setSelectedArticles((prev) =>
-        prev.filter((item) => item.ItemCode !== selectedItemCode)
+        prev.filter((item) => item.ItemCode !== selectedItemCode),
       );
       setPromotionArticles((prev) => {
         const newMap = { ...prev };
@@ -65,8 +66,8 @@ export default function DisplaySelectedArticles({
         prev.map((item) =>
           item.ItemCode === selectedItemCode
             ? { ...item, Quantity: value }
-            : item
-        )
+            : item,
+        ),
       );
     }
   }
@@ -89,14 +90,14 @@ export default function DisplaySelectedArticles({
       setIsArticleSearching(true);
       const warehouseCode = "SC061";
       const articlesResponse = await axios.get(
-        `https://REDACTED_SAP_HOST:50000/b1s/v2/$crossjoin(Items,Items/ItemWarehouseInfoCollection)?$expand=Items($select=ItemCode,ItemName,U_Family),Items/ItemWarehouseInfoCollection($select=InStock)&$filter=Items/ItemWarehouseInfoCollection/WarehouseCode eq '${warehouseCode}' and Items/ItemCode eq Items/ItemWarehouseInfoCollection/ItemCode and Items/ItemCode eq '${value}' and Items/ItemWarehouseInfoCollection/InStock gt 0`,
+        `${SAP_API_URL}/$crossjoin(Items,Items/ItemWarehouseInfoCollection)?$expand=Items($select=ItemCode,ItemName,U_Family),Items/ItemWarehouseInfoCollection($select=InStock)&$filter=Items/ItemWarehouseInfoCollection/WarehouseCode eq '${warehouseCode}' and Items/ItemCode eq Items/ItemWarehouseInfoCollection/ItemCode and Items/ItemCode eq '${value}' and Items/ItemWarehouseInfoCollection/InStock gt 0`,
         {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
           withCredentials: true,
-        }
+        },
       );
 
       if (
@@ -120,7 +121,7 @@ export default function DisplaySelectedArticles({
       };
 
       const priceResponse = await axios.post(
-        `https://REDACTED_SAP_HOST:50000/b1s/v2/CompanyService_GetItemPrice`,
+        `${SAP_API_URL}/CompanyService_GetItemPrice`,
         priceParams,
         {
           headers: {
@@ -128,7 +129,7 @@ export default function DisplaySelectedArticles({
             Accept: "application/json",
           },
           withCredentials: true,
-        }
+        },
       );
 
       const priceInfo = {
@@ -147,7 +148,7 @@ export default function DisplaySelectedArticles({
       };
 
       const isArticleFound = selectedArticles.some(
-        (item) => item.ItemCode.toUpperCase() === value
+        (item) => item.ItemCode.toUpperCase() === value,
       );
       if (isArticleFound) {
         setNotification({
@@ -175,7 +176,7 @@ export default function DisplaySelectedArticles({
   useEffect(() => {
     const total = selectedArticles.reduce(
       (prev, curr) => prev + curr.PriceInfo.Price * curr.Quantity,
-      0
+      0,
     );
     setTotalPrice(total);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -276,7 +277,7 @@ export default function DisplaySelectedArticles({
           </TableRow>
           {selectedArticles.map((article, index) => {
             const isPromotion = Object.keys(promotionArticles).find(
-              (item) => item === article.ItemCode
+              (item) => item === article.ItemCode,
             );
             return (
               <TableRow

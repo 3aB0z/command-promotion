@@ -3,7 +3,6 @@ import DisplaySelectedArticles from "./DisplaySelectedArticles";
 import DisplaySelectedClient from "./DisplaySelectedClient";
 import DisplaySelectedPromotions from "./DisplaySelectedPromotions";
 import Popup from "./components/Popup";
-import { useEffect, useState } from "react";
 
 export default function CommandePromotion({
   selectedClient,
@@ -21,11 +20,7 @@ export default function CommandePromotion({
   selectedPromotionArticles,
   setTotalPrice,
 }) {
-  const [isPageLoading, setIsPageLoading] = useState(true);
-
-  useEffect(() => {
-    selectedClient.CardCode && setIsPageLoading(false);
-  }, [selectedClient]);
+  const isPageLoading = !selectedClient.CardCode;
 
   return (
     <>

@@ -12,8 +12,43 @@ import {
   Icon,
 } from "@ui5/webcomponents-react";
 import Popup from "./components/Popup";
+import { SAP_API_URL } from "./config";
+
+let sapLoginRequest;
+
+function loginToSAP() {
+  if (!sapLoginRequest) {
+    const loginData = {
+      CompanyDB: "REDACTED_COMPANY_DATABASE",
+      UserName: "REDACTED_USERNAME",
+      Password: "REDACTED_CREDENTIAL",
+    };
+
+    sapLoginRequest = axios
+      .post(`${SAP_API_URL}/Login`, loginData, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (!response.data?.SessionId) {
+          throw new Error("SAP login response did not include a session.");
+        }
+        return response;
+      })
+      .catch((error) => {
+        sapLoginRequest = undefined;
+        throw error;
+      });
+  }
+
+  return sapLoginRequest;
+}
 
 function App() {
+  const [loginState, setLoginState] = useState("loading");
   const [selectedClient, setSelectedClient] = useState({
     CardCode: "",
     CardName: "",
@@ -54,28 +89,28 @@ function App() {
     async function fetchPromotionArticles(article) {
       try {
         const promotionsResponse = await axios.get(
-          `https://REDACTED_SAP_HOST:50000/b1s/v2/PROMOTIONS?$select=U_PromoFamily,U_QtyRequired,U_QtyFree&$filter=U_ArticleFamily eq '${article.U_Family}' and U_QtyRequired le ${article.Quantity}`,
+          `${SAP_API_URL}/PROMOTIONS?$select=U_PromoFamily,U_QtyRequired,U_QtyFree&$filter=U_ArticleFamily eq '${article.U_Family}' and U_QtyRequired le ${article.Quantity}`,
           {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
             withCredentials: true,
-          }
+          },
         );
 
         if (!promotionsResponse.data.value?.length) return [];
         const promoFamily = promotionsResponse.data.value[0].U_PromoFamily;
 
         const itemsResponse = await axios.get(
-          `https://REDACTED_SAP_HOST:50000/b1s/v2/Items?$select=ItemCode,ItemName&$filter=U_Family eq '${promoFamily}'`,
+          `${SAP_API_URL}/Items?$select=ItemCode,ItemName&$filter=U_Family eq '${promoFamily}'`,
           {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
             withCredentials: true,
-          }
+          },
         );
 
         return itemsResponse.data.value.map((item) => ({
@@ -96,7 +131,9 @@ function App() {
 
     try {
       const results = await Promise.all(
-        selectedArticles.map(async (item) => await fetchPromotionArticles(item))
+        selectedArticles.map(
+          async (item) => await fetchPromotionArticles(item),
+        ),
       );
       if (results.some((item) => item.length !== 0)) {
         const nonEmptyPromotions = {};
@@ -151,17 +188,13 @@ function App() {
     };
 
     try {
-      const response = await axios.post(
-        "https://REDACTED_SAP_HOST:50000/b1s/v2/Orders",
-        order,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: true,
-        }
-      );
+      const response = await axios.post(`${SAP_API_URL}/Orders`, order, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
       cancel();
       setNotification({
         message: "Your order was created!",
@@ -189,38 +222,40 @@ function App() {
   }
 
   useEffect(() => {
-    async function loginToSAP() {
-      try {
-        const loginData = {
-          CompanyDB: "REDACTED_COMPANY_DATABASE",
-          UserName: "REDACTED_USERNAME",
-          Password: "REDACTED_CREDENTIAL",
-        };
+    let isActive = true;
 
-        const response = await axios.post(
-          "https://REDACTED_SAP_HOST:50000/b1s/v2/Login",
-          loginData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            withCredentials: true,
-          }
-        );
-
-        console.log("Logged Successfull:", response);
-      } catch (error) {
+    loginToSAP()
+      .then((response) => {
+        console.log("Logged Successfully:", response);
+        if (isActive) setLoginState("authenticated");
+      })
+      .catch((error) => {
         console.error("SAP Login Error:", error);
-      }
-    }
+        if (isActive) setLoginState("error");
+      });
 
-    loginToSAP();
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   useEffect(() => {
     cancel();
   }, [selectedClient.CardCode]);
+
+  if (loginState !== "authenticated") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        {loginState === "loading" ? (
+          <BusyIndicator active delay={0} size="M" />
+        ) : (
+          <p className="text-rose-700">
+            SAP login failed. Reload the page to try again.
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <>
